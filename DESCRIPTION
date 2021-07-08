@@ -1,0 +1,10 @@
+Package: isteahMAT104
+Version: 0.5.1
+Title: MAT104 Probabilité et Statistiques
+Type: Package
+Author: Daniel Coulombe
+RoxygenNote: 7.1.1
+Imports:
+    wakefield,
+    LaplacesDemon
+Encoding: UTF-8
