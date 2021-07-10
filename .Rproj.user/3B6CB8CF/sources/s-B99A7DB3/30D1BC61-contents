@@ -1,0 +1,1504 @@
+---
+title: 'MAT104 - Cours 1: <br> Introduction à R et opérations de base'
+author: Daniel Coulombe
+date:  "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    number_sections: true
+    highlight: pygments
+    theme: spacelab
+    fig_width: 5.6
+    fig_height: 4
+  pdf_document: 
+    toc: yes
+    latex_engine: xelatex
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+# Introduction 
+
+## Qu’est-ce que le HASARD ?
+* Le hasard est ce qu’on présume être à l’origine d’une observation survenant sans que l’on puisse en déterminer la cause. Par exemple, Un générateur de nombres aléatoires produit des valeurs qu’on ne peut prévoir: elles ne sont que le fait du hasard.
+
+* Or, l’humain cherche les causes de toute chose, mais lorsqu’on n’en trouve pas, on fait appel au hasard! Un monde sans hasard serait un monde complètement déterminé, un monde où tout serait fixé, dans lequel on pourrait prédire exactement le futur de toute chose et de ce fait, on pourrait véritablement parler de DESTIN auquel on ne saurait échapper! Tout serait écrit d’avance!
+
+* La notion de hasard réfère à ce qu’on n’arrive pas à expliquer. Le premier objectif de la Science étant d'expliquer les phénomènes, la recherche scientifique s'efforce de réduire la part de hasard dans l’explication de ces phénomènes. Pour nos besoins, on associera hasard à **erreur**, ou **résidu**!
+
+## Hasard et Probabilité  
+
+Le hasard est lié à la notion de PROBABILITÉ: 
+
+* Le lancer d’un dé donnera une valeur de 1 à 6, et cette valeur sera le fruit du hasard: on ne peut prédire le résultat à moins que le dé ait été truqué
+* Par contre, on peut calculer les chances d’obtenir une valeur donnée: puisqu’un dé a 6 faces et qu’il va nécessairement tomber sur l’une d’elles, on dira qu’on a une chance sur 6 d’obtenir un ‘1’, ou un ‘2’, ou un ‘3’...
+* ... et connaissant la probabilité d’obtenir un résultat, on peut prendre une décision dans un contexte donné...
+* Par exemple, ‘la présence de gros nuages gris à l’horizon m’indique qu’il va probablement pleuvoir aujourd’hui. En conséquence, je n’irai pas à la plage!’
+* La notion de probabilité est omniprésente en recherche scientifique, tout comme dans le quotidien de tout individu...
+
+## Qu'est-ce que l'INFINI
+  
+* Sans s'embourber dans les considérations philosophiques, considérons la compréhension populaire (mais pas nécessairement juste!) de l'infini: ce qui n'est borné par aucune limite...
+* Dans ce sens, ce qu'on perçoit comme infiniment grand est de fait infiniment petit!
+* Ce qu'on perçoit comme infiniment petit est de fait infiniment grand!
+* Pour nos besoins, on associera **infini** à **très grand nombre**
+
+## Objectif de la Science
+
+* Le scientifique cherche à repousser le hasard, autant que possible, dans l’explication d’une observation. Il cherche à déterminer les ‘causes’ de cette observation.
+* Mais en général, il n’y parvient que partiellement: une part d’erreur, ou une part résiduelle demeurera présente et une tâche essentielle du chercheur sera de quantifier cette part d’erreur.
+* A ce niveau, la notion de probabilité deviendra partie du décors!
+
+## Objectif global du cours: 
+
+Développer une culture **PROBABILISTE** dans le contexte d’une approche scientifique de l’examen des déterminants d’une observation...
+
+Pour y parvenir, nous utiliserons une approche avant tout intuitive, fondée sur la simulation plutôt que sur les formalisations mathématiques. Et la simulation ne peut se réaliser qu'à l'aide d'outils informatiques appropriés: **R** et **RStudio**. Il sera donc nécessaire de maîtriser quelques éléments de base de la programmation.
+
+De nombreux ouvrages et sites Internet présentent d'excellentes introductions au langage R. On trouvera des références à la fin de ce chapitre, dans lequel on abordera le strict minimum pour nos besoins immédiats. Le lecteur est fortement encouragé à approfondir ses connaissances en parcourant les ouvrages cités. 
+
+
+## Introduction: Installation des logiciels
+
+Pour les besoins des discussions à venir, et surtout de la méthodologie utilisée, les logiciels R et RStudio seront nécessaires. De plus, sans que l'on cherche à devenir spécialistes de la programmation R, nous devons connaître les éléments fondamentaux du langage. Et comme pour l'apprentissage de tout langage, incluant R, la pratique active est essentielle. En effet, il ne suffit pas de lire les documents fournis, mais de mettre la main à la pâte et d'utiliser les fonctions permettant de résoudre un problème et d'obtenir réponse aux questions qui pourraient se poser. Bref, vous devez être **activement engagés** dans l'apprentissage du langage R et des outils qui en facilitent l'utilisation. Prenez le temps nécessaire pour examiner comment les diverses fonctions et opérateurs sont utilisés pour la solution des problèmes présentés, et exécutez les codes R proposés pour en vérifier les résultats. Les opérations à effectuer sont relativement simples, et très souvent il suffit de copier un texte et de le coller dans une fenêtre spécifique. Plus vous serez actifs dans l'apprentissage du système, plus vos compétences seront manifestes.
+
+### Installation de R et de RStudio:
+
+L'installation des logiciels requis est simple et n'est pas différente de l'installation de tout autre logiciel. Effectuez les deux étapes suivantes dans l'ordre:
+
+* Rendez-vous sur le site de téléchargement de [**R**](http://www.r-project.org/)  et installez la version de R correspondant à votre système d'exploitation.
+
+* Rendez-vous sur le site de téléchargement de [**RStudio**](https://www.rstudio.com/products/rstudio/download/#download)   et cliquez sur le lien indiqué sous **Download**, et finalement sur le bouton libellé **DOWNLOAD RSTUDIO FOR WINDOWS**. Si vous utilisez un système d'exploitation différent, sélectionnez la version pertinente dans la liste apparaissant sous **ALL INSTALLERS** . Suivez les instructions pour installer RStudio.
+
+Pour vous assurer que tout a bien fonctionné, ouvrez le programme RStudio et allez dans **FICHIER** > **NOUVEAU** > **SCRIPT R**. Un document vide s'ouvrira. Dans ce document, tapez le texte indiqué dans le cadre ci-dessous (NOTE: l'opérateur d'assignation de variables, '<-', peut s'obtenir en appuyant simultanément sur <ALT>'-') :
+
+```{r 01-Chap1-1, eval = FALSE}
+x <- 25
+x == 10
+```
+
+Sélectionnez ensuite que vous venez d'écrire en cliquant et en faisant glisser le curseur pour surligner les deux lignes de code. Finalement, cliquez sur le bouton marqué "**Exécuter**". Si tout fonctionne correctement, la console doit afficher **FALSE**.
+
+Notez que vous pouvez exécuter une ligne de votre script à la fois en déplaçant votre curseur sur cette ligne et en appuyant sur **CTRL-ENTER** ou **COMMAND-RETURN**, selon que vous utilisez Mac OSX, Linux ou Windows. Un autre raccourci utile est *CTRL-A** (COMMAND-A sur Mac) qui met en évidence toutes les lignes de code dans l'éditeur de texte.
+
+
+## L'environnement de travail
+
+Par défaut, le langage utilisé par les logiciels R et RStudio est l'anglais. Pour utiliser le français, et pour les menus et les messages apparaissant à l'écran, il suffira d'inscrire dans la console R, ou celle de RStudio, la commande:
+
+```{r 01-Chap1-2}
+Sys.setenv(LANG = "fr")
+```
+On peut également obtenir un environnement espagnol en remplaçant "fr" par "es", dans cette commande.
+
+Les logiciels requis (**R** et **RStudio**) sont maintenant prêts à l'action. Dans cette section, nous explorerons votre environnement de travail en détail. Une bonne connaissance de cet environnement vous donnera une grande efficacité dans les opérations à venir.
+
+
+### La console R
+
+Lorsque vous lancez **R**, une fenêtre s'ouvre, quelques paragraphes apparaissent, suivis par une invite de commande: **>**. Vous êtes à la **CONSOLE**. L'interaction de base avec R se fait en inscrivant des commandes à ce niveau.
+
+![Console](./images/rterminal.png)
+
+#### Utilisation de la Console
+
+- Tout en bas de la CONSOLE, vous trouverez le symbole “>”. Il indique l'endroit où vous pouvez inscrire des expressions à exécuter. Vous inscrivez une commande et appuyez sur 'ENTRÉE'. Le résultat de la commande est immédiatement affiché (sauf si la commande est une définition de variable!). Si la commande est erronée, un message d'erreur sera affiché. Par exemple:
+
+```{r 01-Chap1-4}
+6+7*5/2-2
+
+```
+On retrouve dans cette expression les 4 opérateurs arithmétiques de base: +, -, * et /.  La multiplication (*) et la division (/) ont précédence et sont exécutées en premier lieu. Par la suite, l'addition (+) et la soustraction sont appliquées. Le résultat de l'expression ci-dessus est donc obtenu par:
+
+7*5/2 = 35/2 = __17.5__
+
+6+17.5-2 = __21.5__
+
+On peut également utiliser les parenthèses pour altérer la séquence des opérations. Reprenant l'exemple précédent:
+```{r 01-Chap1-5}
+(6+7)*5/2-2
+
+```
+Ici, le contenu de la parenthèse est exécuté avant toute autre opération, suivi des opérations impliquant multiplication et division, et finalement on termine par les opérations impliquant addition et soustraction:
+
+42*5/2 = __105__
+
+105-2 = __103__
+
+
+Vous pouvez donc utiliser la console comme un simple calculateur! Mais il y a beaucoup plus à faire avec R...
+
+Transcrivez, ou Copiez/Collez les lignes suivantes dans la console:
+
+```{r 01-Chap1-6, eval=FALSE}
+x <- 1:10
+y <- round(rnorm(10, x, 1), 2)
+df <- data.frame(x, y)
+df
+```
+Ce que vous venez de faire, c'est de créer une variable **x** contenant les entiers de 1 à 10; puis vous avez généré 10 nombres au hasard et les avez arrondis à 2 décimales près, formant une nouvelle variable **y**. Finalement, vous avez uni les deux variables dans un contenant, **df** pour ensuite afficher le résultat!  
+
+```{r 01-Chap1-7, echo=FALSE}
+x <- 1:10
+y <- round(rnorm(10, x, 1), 2)
+df <- data.frame(x, y)
+df
+```
+
+Sous R, il est très facile d'obtenir des graphiques. Essayez les commandes suivantes, et voyez le résultat:
+
+```{r 01-Chap1-9}
+plot(x)
+plot(x,y)
+boxplot(x~rep(1:2,5))
+```
+  
+Essentiellement, l'environnement R permet d'effectuer autant les calculs simples comme le ferait une calculatrice, que des calculs aussi complexes que nécessaire pour solutionner un problème. 
+
+Plusieurs fonctions sont regroupées dans les différents onglets du menu principal dans la portion supérieure de la console. Mais on aura avantage à utiliser un interface graphique offrant beaucoup plus de versatilité: **RStudio**...
+
+
+#### Exercice 1
+
+Lancez R (pas RStudio...) et effectuez les calculs proposés ci-dessous:
+
+1. Au marché, vous achetez pour 200 gourdes de pommes de terre, pour 327 gourdes de raisins, pour 178 gourdes d'ananas et pour 1238 gourdes de poisson. Utilisez la console R pour calculer le coût total de vos achats.
+1. Arrivé à la caisse, vous vous rendez compte que qu'un des ananas est gâté et vous décidez de le retirer de votre achat, ce qui réduit le coût de 53 gourdes. Utilisez R pour calculer la somme qu'il vous reste à payer.
+
+3. Pour que tout soit bien clair dans la transaction que vous effectuez au marché, lancez les commandes suivantes dans la console:
+
+  
+```{r 01-Chap1-10, eval=FALSE}
+pomme.de.terre <- 200
+raisins <- 327
+ananas <- 178 - 53
+poisson <- 1238
+
+a <- 'Le montant total à payer ce matin est: '
+montant <- pomme.de.terre + raisins + ananas + poisson
+cat(a,montant,' gourdes')
+
+```
+4. Les prix de certaines denrées ont changé depuis votre dernière visite au marché. Pour les pommes de terre, il y a une augmentation de 20%, et pour le poisson, une réduction de 38 gourdes. Vous voulez acheter les mêmes denrées que la dernière fois. Obtenez le montant de votre facture,,,
+
+
+On peut donc utiliser la console de R comme une simple calculatrice. Mais il y a beaucoup plus de choses que R nous permet de faire. Et RStudio nous rend la tâche plus facile et efficace!
+
+
+### RStudio: interface graphique pour R
+
+RStudio se compose de 4 fenêtres principales ('panes'):
+
+- Éditeur
+- Console (similaire à la console R)
+- Environnement de travail / Historique des commandes
+- Fichiers / Graphiques / Librairies / Aide
+
+![Console](./images/rstudio_panes.png)
+
+
+#### RStudio: Survol des différentes fenêtres
+
+1. __Éditeur__ : Création de fichiers que l'on peut sauvegarder et exécuter plus tard. On peut également créer des fichiers Markdown intégrant texte. commandes et résultats. 
+
+2. __Console__ : Commandes inscrites directement ou importées du presse-papier pour obtenir un résultat donné.Cette fenêtre reproduit simplement la console de R
+
+3. __Espace de travail/Historique__ : Liste des variables, fonctions, commandes utilisées antérieurement
+
+4.  __Fichiers/Graphiques/Librairies/Aide__ : Affichage des graphiques, des documents d'aide et différents autres items.
+
+##### La fenêtre CONSOLE
+
+![La console R](./images/pane_console.png)
+
+- Utilisez la **Console** pour inscrire ou coller des commandes et obtenir des résultats...
+
+- ... ou pour consulter un fichier d'aide concernant une fonction: inscrivez '?*Nom_de_la_fonction*. Par exemple: ?mean
+
+Une fenêtre s'ouvre dans votre fureteur:
+
+![Console](./images/aide.png)
+
+
+##### Le panneau de l'éditeur
+
+![L'éditeur](./images/pane_source.png)
+  
+- Vous utiliserez la fenêtre **Éditeur** pour créer et éditer des scripts R et des fichiers Rmd (Markdown), principalement.
+
+- La barre de menu dans la portion supérieure de cette fenêtre contient des raccourcis pour transmettre des lignes de code à la console pour une évaluation.
+
+Dans la figure suivante, des commandes ont été inscrites dans l'éditeur. Puis, le bouton 'RUN' de la barre d'outils a été activé, et l'ensemble des commandes ont été transmises et exécutées dans la Console:
+
+![L'éditeur](./images/EditCons.png)
+
+##### La fenêtre *Fichiers/Graphiques/Librairies/Aide*
+
+![L'éditeur](./images/pane_plots.png)
+
+- Par défaut, les graphiques produits dans R sont affichés dans cette fenêtre, sous l'onglet **Plots** 
+  - La barre de menu vous permet un Zoom, d'exporter et de naviguer entre les différents graphiques produits dans une session. 
+- Lorsqu'une aide est requise (par exemple '?mean'), la documentation apparait sous l'onglet **Help**
+
+##### Fenêtre Historique/Environnement/Connexions/Tutoriels
+
+La fenêtre supérieure/droite présente 4 onglets permettant:
+- l'affichage des objets se trouvant dans votre espace de travail: variables et fonctions
+- l'historique des commandes qui ont été exécutées
+- les connexions établies avec différentes sources de données
+- des tutoriels sur différents aspects de la programmation R
+
+## Le langage R: élements de base
+
+R est un langage composé d'une foule d'éléments dont une gamme extrêmement étendue de fonctions. Certaines de ces fonctions font partie du système de base, d'autres proviennent de la communauté R, et d'autres encore que vous pourriez être amenés à écrire! L'ensemble forme un outil très sophistiqué qui ouvre des portes à une multitude de méthodes de traitement de données. Mais puisqu'il faut un commencement à tout, examinons les éléments les plus simples.
+
+- Sous R, à peu près tout ce que nous faisons, c'est d'appliquer des **fonctions** sur des **données**.
+- **Données**:  simples ou complexes, comme 7, "sept" ,  $7.000$, la matrice $\left[ \begin{array}{ccc} 7 & 7 & 7 \\ 7 & 7 & 7\end{array}\right]$
+
+- **Fonctions**: des termes tels que $\log{}$, $+$ (2 arguments), $<$ (2 args), $\mod{}$ (2 args), `mean` (un seul argument). Une fonction peut n'impliquer aucun argument, ou en nécessiter un ou plusieurs.
+
+> Une fonction est un outil qui traite un objet à l'entrée (**arguments**), pour en produire un nouvel objet à la sortie (**valeur retournée**). Il est possible que cette opération produise aussi des **effets secondaires** (des éléments de sortie secondaires), selon le cas. 
+
+### Les données
+
+Plusieurs types de données existent:
+
+- **Booléennes** ('boolean'): données binaires. Sous R, ces valeurs sont identifiées par `**TRUE**` ou `**FALSE**`.
+
+- **Entiers** ('integers'): nombres entiers (positifs, négatifs ou zéro)
+
+- **Caractères** ('characters'):  bloc de longueur fixe de valeurs binaires;
+**Alphanumériques** ('strings'): séquence de caractères
+
+- **Nombre réel** ('Floating point numbers') : un nombre en continuité avec les valeurs adjacentes, comme 3.14159 
+
+- **Données manquantes ou non-définies** ('Missing or ill-defined values'): `NA`, `NaN`, etc.
+
+
+### Opérateurs arithmétiques
+Vous pouvez utiliser R, vous vous en doutez bien, comme un super-calculateur!...
+
+Commande| Description
+--------|-------------
+**`+,-,*,\`** | addition, soustraction, multiplication, division
+**`^`** | élever à la puissance...
+**`%%`** | Ce qui reste après une division (ex: `8 %% 3 = 2`)
+**`( )`** | changement dans l'ordre d'exécution des opérations
+**`log(), exp()`** | logarithmes and exposants (ex: `log(10) = 2.302`)
+**`sqrt()`** | racine carrée
+**`round()`** | arrondi à l'entier le plus près (ex: `round(2.3) = 2`)
+**`floor(), ceiling()`** | arrondi vers le bas, ou le haut 
+**`abs()`** | valeur absolue
+ 
+  
+```{r 01-Chap1-11}
+7 + 5 # Addition
+7 - 5 # Soustraction
+7 * 5 # Multiplication
+7 ^ 5 # Exponentiation
+7 / 5   # Division
+7 %% 5  # Modulus
+7 %/% 5 # Division entière 
+```
+  
+Il existe aussi des termes faisant référence à des constantes dont un exemple est **pi**:
+  
+```{r 01-Chap1-12}
+2*pi*5        # Circonférence d'un cercle de rayon = 5
+(4*pi*5^2)/3  # Volume d'une sphère de rayon = 5
+```
+
+Plusieurs autres types d'opérations impliquent des fonctions, comme on le verra plus loin. Une d'entre elles est **sqrt()**, qui permet d'obtenir la racine carrée de son argument (le contenu des parenthèses). Par exemple, la racine carrée de 98.74 est:
+
+```{r 01-Chap1-13}
+a <- 98.74
+sqrt(a)
+```
+  
+De la même manière, notons les fonctions:
+  
+```{r 01-Chap1-14}
+round(3.14159,2)  # Arrondissement
+floor(3.14159)    # Arrondissement à l'entier inférieur
+ceiling(3.14159)  # Arrondissement à l'entier supérieur
+```
+
+Plusieurs autres fonctions de ce type s'ajouteront bientôt à la liste!... et il est très probables que vous soyez amenés à écrire vos propres fonctions sous peu!
+
+### Exercice 2
+
+Utilisez l'éditeur de RStudio pour répondre aux questions suivantes:
+
+1. La largeur d'un rectangle mesure 4 centimètres, et sa hauteur mesure 18 centimètres. Quelle est la périphérie de ce rectangle?
+2. Quelle est la surface du rectangle décrit en (1)?
+3. Dans un mètre, il y a 39.37008 pouces. Combien y'a-t'il de pouces dans 2.5 mètres?
+4. Le volume d'une sphère est égal à $(4\pi r^2)/3$. Quel serait le volume d'une sphère dont le **diamètre** serait égal à 8.92745?
+5. Si x = 4.5327 et y = 8.4893, quelle est la valeur de l'expression: $$\sqrt{(x^3+y^4)}-(x/2+x\cdot y/5)^3 $$ 
+
+### Opérateurs de comparaisons logiques
+
+Les **Comparaisons** sont des opérateurs binaires. Elles prennent deux objets, les comparent, et produisent une valeur booléenne ('TRUE' ou 'FALSE'):
+
+```{r 01-Chap1-15}
+7 > 5   # plus grand que...
+7 < 5   # plus petit que...
+7 >= 7  # plus grand ou égal...
+7 <= 5  # plus petit ou égal...
+7 == 5  # égal à...
+7 != 5  # différent de...
+"Carl"=="Marie"   # comparaison de caractères alphanumériques
+"Carl"<"Marie"    # Ordre alphabétique
+substr("Marie",1,2)==substr("Judith",1,2)  # Comparaison de portions de texte (2 premiers caractères) 
+
+```
+À ces opérateurs logiques, on peut ajouter:
+
+!x : Négation de x
+
+```{r}
+!(5>7)
+```
+
+%in%: Est-ce que le premier argument se trouve dans le second?
+
+```{r}
+x <- c(1,2,3,4)
+y <- c(2,4,6,8,10)
+x %in% y
+```
+identical(): Est-ce que les arguments sont identiques?
+
+```{r}
+identical(x,y)
+a <- "Jacques"
+b <- "Jacques"
+identical(a,b)
+```
+
+Plusieurs autres fonctions s'ajouteront à cette courte liste selon les besoins.
+
+### Opérateurs Booléens
+  
+& ('and'): l'opérateur '&' prend deux arguments logiques et retourne TRUE seulement s'ils sont tous les deux vrais:
+
+```{r}
+x <- c(TRUE,TRUE,FALSE,FALSE)
+y <- c(TRUE,FALSE,TRUE,FALSE)
+x & y
+```
+| ('or'): L'opérateur '|' prend aussi deux arguments logiques et retourne TRUE si **au moins** un d'eux est vrai:
+
+```{r}
+x <- c(TRUE,TRUE,FALSE,FALSE)
+y <- c(TRUE,FALSE,TRUE,FALSE)
+x | y
+```
+xor() : OR exclusif: la condition est vraie seulement si un seul des éléments comparés est vrai:
+
+```{r}
+x <- c(TRUE,TRUE,FALSE,FALSE)
+y <- c(TRUE,FALSE,TRUE,FALSE)
+xor(x,y)
+```
+
+&& et || : Même résultat que '&'  et '|' pour des valeurs scalaires, mais pour des vecteurs, l'opération ne se fait que sur le premier élément des vecteurs impliqués:
+
+```{r}
+x <- c(TRUE,TRUE,FALSE,FALSE)
+y <- c(FALSE,FALSE,TRUE,FALSE)
+x && y
+x || y
+```
+
+Ces opérateur seront particulièrement utiles lorsqu'une programmation nécessitera des branchements conditionnels. Dans ces cas, les opérateurs logiques et booléens seront généralementliés:
+
+```{r 01-Chap1-16}
+(5 > 7)               # Condition A 
+(6*7 == 42)           # Condition B
+(5 > 7) & (6*7 == 42) # Condition A ET Condition B
+(5 > 7) | (6*7 == 42) # Condition A OU Condition B
+xor((5 > 7), (6*7 == 42))
+``` 
+
+###  Autres fonctions utiles
+  
+- `typeof()` : Fonction affichant le type d'objet (type = **integer**, **double**, **logical**, **complex**, **character**). Par exemple:
+  
+  
+```{r 01-Chap1-17}
+x <- "Pierre"
+typeof(x)
+
+x <- 3.14159
+typeof(x)
+
+x <- 1:5
+typeof(x)
+
+typeof(x>2)
+
+```
+
+- `is.'_type_`()` Fonction retournant des valeurs booléennes si l'argument est d'un type donné (type = **integer**, **double**, **logical**, **complex**, **character**). Par exemple:
+
+  
+```{r 01-Chap1-18}
+x <- "Pierre"
+is.character(x)
+
+x <- 3.14159
+is.integer(x)
+
+x <- 1:5
+is.logical(x)
+
+is.logical(x>2)
+
+```
+
+
+- `as.`_type_`()` : Fonction qui tente de "convertir" son argument en une valeur d'un autre type (eg: alphanumérique vers numérique). Par exemple:
+
+```{r 01-Chap1-19}
+x <- "Pierre"
+as.logical(x)   # La conversion n<est pas possible
+
+x <- "3.14159" 
+typeof(x)
+as.numeric(x)   # Conversion d<un texte en valeur numérique
+
+x <- 3.14156 
+typeof(x)
+as.character(x) # Conversion d'une valeur numérique en texte
+
+```
+
+<small>**Cas Spécial**: `as.factor()` est une fonction importante permettant d'informer R lorsque des nombres sont des encodages et non pas des valeurs numériques (e.g., 1 = primaire; 2 = secondaire; 3 = Baccalauréat) </small>
+
+  
+### Variables
+  
+Comme c'est le cas en algèbre, les variables sont une forme de raccourci. Au lieu d'écrire 3.1415926... tout le temps, nous pouvons simplement écrire **pi**.
+
+Les variables sont créées avec l'**opérateur d'assignation**, `<-`, '->', ou `=`. L'affectation de données à une variable se fait généralemende droite à gauche - la valeur de droite est affectée au nom de gauche. Mais l'inverse fonctionne aussi (assignation 'fléchée' seulement). Donc, 3 façons de d'assigner une valeur à une variable::
+
+```{r 01-Chap1-20}
+
+x = 8
+x <- 8 # Méthode préférée!
+8 -> x
+x
+
+```
+Vous pouvez utiliser presque n'importe quoi comme nom de variable dans R. Les seules règles sont :
+
+1. le nom d'une variable est formé de lettres et de chiffres, majuscules et/ou minuscules, et des deux seuls symboles permis: '.' et '_'.
+2. Le nom d'une variable ne doit pas commencer par un nombre ou un '_'
+3. Le nom d'une variable est sensible à la case:  A1 et a1 sont deux variables différentes!
+
+Des exemples valides de noms de variables seraient:
+
+```{r 01-Chap1-21}
+abcd <- 3
+Abcd <- 5
+A.bcd <- 8
+A_bcd <- 2
+A1.B2_c3 <- 7
+
+```
+  
+**Notes:**
+  
+1. L'utilisation de noms  pour désigner des variables rend le code plus facile à lire et à corriger au besoin.
+
+- Utilisez des noms descriptifs pour les variables
+  - Bien: `n.étudiants <- 35`
+  - Mauvais: `ns <- 35 `
+
+2. Variables et espace de travail:
+  - On peut déterminer les noms de variables utilisés en utilisant la fonction **ls()**:
+  
+```{r 01-Chap1-22}
+ls()
+```
+
+On peut éliminer des variables avec la fonction **rm()**:
+  
+```{r 01-Chap1-23}
+rm("A.bcd")
+ls()
+```
+
+3. L'assignation de valeurs à une variable existante écrase la valeur existante
+
+### Exercice 3
+
+1. Obtenez la liste des variables qui ont été créées dans votre espace de travail: fonction **ls()**
+2. Nous n'avons plus besoin de ces variables. Effacez 3 des variables qui se trouvent dans votre espace de travail: fonction **rm()**
+3. Pour vous faciliter la tâche, effacez toutes les variables en utilisant **rm(list=ls())**. Cette commande efface tout le contenu de **list**, objet qui est lui-même défini par la liste de toutes les variables...
+4. Il y a 6.28981077 $m^3$ de pétrole dans un baril. Définissez une variable contenant ce facteur de conversion.
+5. Un baril de pétrole vaut $60. Vous avez besoin de 25 $m^3$ de pétrole pour vos opérations hebdomadaires. Quel sera le montant de votre facture de pétrole?
+
+### Introduction aux structures de données: les vecteurs
+
+En R, un vecteur est un ensemble ordonné d'objets du même type. Il est formé par la fonction **c()**, `c()` retourne un vecteur contenant tous ses arguments en séquence:
+
+```{r 01-Chap1-24}
+a1 <- 1:5                           # séquence 1, 2, 3, 4, 5
+a1
+
+a2 <- c("Pierre", "Jean", "Jacques")   # Vecteur d'items alphanumériques
+a2
+
+a3 <- c(3, 5, 8, 6, 9)                 # Vecteur num/rique
+a3
+
+a4 <- c(1, TRUE, "Pierre")             # Trois types différents!
+a4
+```
+  
+Ce dernier exemple nécessite des explications:
+  - Si un vecteur est composés d'items de types différents, tous les items adoptent le type de l'item du type le plus élevé dans la hiérarchie:
+    1. Donnée logique:  TRUE, FALSE
+    2. Donnée entière:  1, 2, 3...
+    3. Donnée numérique: pi, 0.27, 4,37
+    4. Donnée alphanumérique: "R est génial!"
+    
+
+### Indexation:
+
+- `vec[1]` est le premier élément, et `vec[4]` est le quatrième élément du vecteur `vec`
+```{r 01-Chap1-25}
+a3        # Vecteur original
+a3[4]     # Quatrième élément de a3
+a3[1:3]   # Trois premiers éléments de a3
+```
+- `vec[-4]` est un vecteur contenant tous les éléments du vecteur 'vec' sauf le quatrième:
+
+```{r 01-Chap1-26}
+a3
+a3[-4]
+```
+-`which()` retourne les indices d'un vecteur booléen qui sont VRAIS ('TRUE'):
+
+```{r 01-Chap1-27}
+
+x <- c(2,7,6,8,4,4,5,8,2,5,3,4)
+which(x <= 5)
+x[which(x<=5)]
+```
+Il est également possible d'éditer un item faisant partie d'un vecteur. Par exemple, on peut multiplier par 10 le troisième élément de x:
+
+```{r 01-Chap1-28}
+x
+x[3] <- x[3] * 10
+x
+
+```
+
+### Arithmétique vectorielle
+
+Les vecteurs permettent d'effectuer facilement de nombreux calculs en une seule fois : ajouter un chiffre à une liste de nombres, les diviser tous par 3, etc. Et tant que deux vecteurs sont de même longueur, nous pouvons les combiner de manière naturelle :
+
+```{r 01-Chap1-29}
+x <- 1:10    # Séquence des nombres 1 à 10
+x + 5
+x * 5
+sqrt(x)     # Racine carrée des éléments du vecteur
+
+y <- 25:34   # Séquence des nombres 25 à 34
+y
+y - x
+x < 6
+
+```
+
+### Fonctions appliquées sur des vecteurs
+
+Comme en mathématiques, une fonction est un moyen de faire correspondre une entrée à une sortie. Vous pouvez facilement repérer les fonctions car elles utilisent des parenthèses : (). Nous avons déjà vu la fonction de concat/nation, **c()** utilisée (par exemple) pour créer des vecteurs.
+
+Nous pouvons également appliquer un certain nombre de fonctions omniprésentes à notre entrée vectorielle. En voici un petit (**très petit!**]) avant-goût :
+
+Commande| Description
+--------|------------
+`sum(vec)` | Somme de tous les éléments de `vec`
+`mean(vec)` | moyenne de `vec`
+`median(vec)` | médiane de `vec`
+`min(vec), max(vec)` | élément minimum et maximum de `vec`
+`sd(vec), var(vec)` | écart-type et variance de `vec`
+`length(vec)` | nombre d'éléments dans `vec`
+`pmax(vec1, vec2), pmin(vec1, vec2)` | exemple: `pmax(quiz1, quiz2)` retourne le plus élevé de quiz 1 et de quiz 2 pour chaque étudiant
+`sort(vec)` | retourne `vec` en ordre croissant
+`order(vec)` | retourne l'indice qui ordonne `vec`
+`unique(vec)` | retourne une liste des éléments uniques `vec`
+`summary(vec)` | retourne les 5 indices résumant 'vec'  
+`any(vec), all(vec)` | Estce qu'au moins 1 élément de 'vec' est vrai?; Est-ce que tous les éléments de 'vec' sont vrais?
+
+Par exemple:
+
+```{r 01-Chap1-30}
+x <- round(runif(10,10,20))  # 10 nombres aléatoires entre 10 et 20
+
+sum(x)                      # Somme des 10 valeurs de x
+
+prod(x)                     # Produit des 10 valeurs de x
+
+range(x)                    # Étendue des valeurs de x 
+
+log(x)                      # Logarithme naturel des 10 valeurs de x 
+
+length(x)                   # Longueur du vecteur: nombre d'éléments dans x
+
+y <- sample(1:5,10,replace=TRUE) # Sélection de 10 nombres compris entre 1 et 5, au hasard
+y
+unique(y)
+```
+
+### Création de séquences régulières de nombres
+
+Très souvent, il sera utile de générer des séquences de nombres également espacés. On a déjà rencontrer des expressions telles que x = 1:10. Une telle expression produit un vecteur des nombres entiers compris entre 1 et 10. Mais on n'a pas à se limiter aux nombres entiers:
+
+```{r 01-Chap1-31}
+x <- 1:10                    # Séquence des entiers de 1 à 10
+x
+
+y <- seq(0, 10, by = 0.5)    # Séquence de 0 à 10, par étape de 0.5
+y
+
+z <- seq(0, 10, length.out = 20) # 20 valeurs équidistantes entre 0 et 10
+z
+
+w <- rep(c(1,2,3,4,5),3)     # 3 Répétitions du vecteur
+w
+
+```
+### Autres fonctions vectorielles utiles
+
+Le nombre de fonctions disponibles en R est très élevé! Vous apprendrez à les connaître à l'usage. Mais certaines doivent être mentionnées maintenant en raison de leur utilité:
+
+head(): permet d'afficher les premiers éléments d'un vecteur
+tail(): permet d'afficher les derniers éléments d'un vecteur
+class(): permet d'afficher ce que R considère être le type d'une varialbe
+
+```{r 01-Chap1-32}
+x <- runif(50,1,20)  # Génération de 50 nombres aléatoires compris entre 1 et 20
+
+head(x)             # Affichage des 6 premières données (défaut)
+
+head(x, 10)         # Affichage des 10 premières données
+
+tail(x)             # Affichage des 6 dernières données (défaut)
+
+tail(x, 10)         # Affichage des 10 dernières données
+
+class(x)            # Type d'objet, vu par R
+
+```
+### Exercice 4
+
+1. Exécutez les commandes suivantes pour générer deux vecteurs composés de 20 nombres entiers compris entre 1 et 10. Ces données seront sauvegardés dans les variables x et y respectivement:
+```{r 01-Chap1-33}
+x <- runif(20,1,10)
+y <- runif(20,1,10)
+```
+2. Dans la variable x, quelles sont les valeurs supérieures à 5?
+3. Dans la variable x, quelle est la somme des valeurs supérieures à 5?
+4. Quelle est la valeur de $\sum_{i = 1}^{20}{x_i^2}$ ?
+5. Définissez un vecteur contenant la séquence des valeurs de 1 à 20
+6. Calculez la somme de x et du vecteur que vous venez de définir.
+7. Déterminez l'étendue de la variable x.
+8. Calculez la somme des produits xy.
+9. Déterminez le vecteur des valeurs les plus élevées de x et de y.
+10. Déterminez le vecteur des valeurs les plus petites de x et de y.
+
+
+### Trucs utiles
+Touche | Description
+----------|-------------
+`<tab>` | auto-compléter les commandes et les noms de fichiers, et fournit une liste des argumens de fonctions. Très utile!
+`<up>` | revient aux commandes précédentes au niveau de la console
+`<ctrl-up>` | fournit une liste historique des commandes précédentes correspondant à une commande non terminée
+`<ctrl-enter>` | Colle la ligne courante de l'éditeur dans la console. Cela permet de vérifier le bon fonctionnement des commandes.
+`<ESC>` | Terminer une commande non complétée
+
+
+### Entrée de données
+
+Afin de procéder au traitement de données, il faut être en mesure d'introduire les données à traiter dans l'environnement R. Plusieurs méthodes existent à cette fin.
+
+#### Entrée manuelle de données: création de vecteurs 
+
+Lorsque le nombre de données est petit, on peut les entrer directement dans la console en créant une structure de données, tel qu'un vecteur comme on l'a vu dansles paragraphes précédents. Par exemple, si les notes obtenues par 23 élèves à un examen de mathématiques sont:
+
+0, 1, 2, 12, 12, 14, 18, 21, 21, 23, 24, 25, 28, 29, 30, 30, 30, 33, 36, 44, 45, 47, 50
+
+on pourra définir une variable telle que:
+
+```{r 01-Chap1-34}
+Notes <- c(0, 1, 2, 12, 12, 14, 18, 21, 21, 23, 24, 25, 28, 29, 30, 30, 30, 33, 36, 44, 45, 47, 50)
+Notes
+
+```
+Ici, l'opérateur de concaténation, __c()__, est utilisé pour unir l'ensemble des 23 notes dans un vecteur unique auquel on a donné le nom de **Notes**.  Pour accéder à une donnée particulière, on utilisera l'indice de cette donnée, ou sa position dans la séquence. Par exemple, la 10ième donnée est:
+
+```{r 01-Chap1-35}
+Notes[10]
+```
+Et les cinq premières données sont:
+
+```{r 01-Chap1-36}
+Notes[1:5]
+```
+Il est possible de modifier une donnée spécifique faisant partie d'un objet. Par exemple:
+
+```{r 01-Chap1-37}
+Notes[10] <- 37
+Notes
+```
+
+
+On rencontrera souvent des ensembles de données comprenant plusieurs variables organisées en colonnes, avec plusieurs observations (rangées) pour ces variables.
+
+Supposons l'ensemble de données suivant:
+
+```{r 01-Chap1-38, echo=FALSE,results="asis"}
+library(knitr)
+A <- c(7,5,2,6,4,9,5)
+B <- c(7,9,5,4,1,5,5)
+C <- c(9,6,9,7,2,7,3)
+D <- c(4,8,7,7,1,3,8)
+E <- c(6,3,8,2,6,3,7)
+dt=data.frame(A,B,C,D,E)
+kable(dt,caption='__Tableau de données__')
+```
+
+On y trouve 5 variables (A - E) et 7 observations pour chacune d'elles. Ces données peuvent prendre la forme d'un objet appelé __data.frame()__ sous R. Un data.frame contient une collection de variables pouvant être de différents types, et de tailles égales, comme c'est le cas ici. Au départ, les 5 variables sont 5 objets distincts:
+```{r 01-Chap1-39}
+A <- c(7,5,2,6,4,9,5)
+B <- c(7,9,5,4,1,5,5)
+C <- c(9,6,9,7,2,7,3)
+D <- c(4,8,7,7,1,3,8)
+E <- c(6,3,8,2,6,3,7)
+
+
+```
+On peut alors former:
+
+```{r 01-Chap1-40}
+X <- data.frame(A,B,C,D,E)
+X
+```
+Par la suite, on peut extraire une ou l'autre des variables en utilisant le __nom_du_dataframe$nom_de_la_variable__. Par exemple:
+
+```{r 01-Chap1-41}
+X$A
+X$B
+X$C
+```
+Il est également possible d'opérer sur l'ensemble des éléments que contient le data.frame:
+
+```{r 01-Chap1-42}
+X**2
+```
+#### Lecture / Écriture de fichiers de donnes
+Généralement, l'ensemble des données à traiter est trop volumineux pour permettre une simple concaténation et une entrée manuelle. On devra très souvent lire des données que se trouvent dans des fichiers externes à l'environnement R. On voudra importer des fichiers produits sous Excel, des fichiers textes, ou provenant de d'autres logiciels. Pour illustrer la procédure, générons un ensemble de données comprenant 50 observations pour 5 variables (V1-V5), et sauvegardons l'ensemble dans un fichier appelé **data1.txt**:
+
+```{r}
+x <- matrix(rbinom(250,10,0.5),nrow=50, byrow=TRUE) # Création d'une matrice 50x5, données aléatoires
+head(x)
+write.table(x,file="data1.txt")
+```
+La fonction **write.table()** effectue la sauvegarde des données dans le répertoire de travail. Par la suite, ces données peuvent être ré-introduites dans l'environnement de travail à l'aide de la fonction **read.table()**:
+
+```{r}
+y <- read.table(file="data1.txt")
+head(y)
+```
+
+Cette commande importera l'ensemble des données contenues dans data1.txt dans un data.frame nommé y, en incluant le nom des variables s'il y a lieu. 
+
+La fonction '__head()__' permet d'afficher les premières lignes de données, alors que la fonction '__tail()__' en affiche les dernières lignes:
+
+```{r 01-Chap1-45}
+tail(X,n=5)
+```
+
+#### Éditeur de données
+
+Un éditeur de données prenant la forme d'un chiffrier est disponible pour entrer manuellement un ensemble de données. On accède à ce chiffrier en créant un data.frame vide, et en l'ouvrant avec la fonction __fix()__:
+```{r 01-Chap1-46, eval=FALSE}
+NouveauX <- data.frame()
+fix(NouveauX)
+```
+On peut alors modifier le nom des variables (première ligne), et entrer les données comme on le ferait dans Excel, par exemple:
+
+![Editeur de Données](./images/editeur.png)
+
+De fait, on peut utiliser la fonction __fix()__ pour éditer toute variable. Essayez d'éditer la variable X définie plus haut, en lançant la commande: 
+```{r 01-Chap1-47, eval=FALSE}
+fix(X)
+```
+![Editeur de Données](./images/editeur2.png)
+et 
+
+```{r 01-Chap1-48, eval=FALSE}
+fix(Notes)
+```
+![Editeur de Données](./images/editeur3.png)
+
+#### Génération de nombres aléatoires
+
+Finalement, il est souvent approprié de générer des nombres aléatoires. R offre plusieurs fonctions pour ce faire. Une seule sera présentée à ce stade, permettant de générer n données aléatoires comprises entre deux valeurs (minimum et maximum). Ainsi, pour obtenir 20 données comprises entre 1 et 10:
+
+```{r 01-Chap1-49}
+n <- 20
+minimum <- 1
+maximum <- 10
+z <- runif(n,minimum,maximum)
+z
+```
+ou simplement:
+```{r 01-Chap1-50}
+z <- runif(20,1,10)
+z
+```
+On obtient de nouvelles données à chaque exécution de cette commande.
+
+#### Simulation de données
+
+En exécutant le code suivant, on peut générer *n* observations d'une population de forme rectangulaire dont les limites sont choisies au hasard à l'intérieur d'une étendue définie. De cette manière, on ne peut connaître à l'avance les caractéristiques de la population. Donc, d'une population donnée, on tire un échantillon de *n* observations dont les valeurs sont comprises entre deux valeurs indéterminées, et on obtient quelques indices calculés sur ces observations, de même qu'un graphique. Ce type de génération de données sera très utile dans la suite du cours. 
+
+```{r 01-Chap1-51}
+n <- 50  # nombre d'observations à générer
+a <- c(10,20)  # étendue de la limite inférieure (population)
+b <- c(25,50)  # étendue de la limite supérieure (population)
+liminf <- runif(1,a[1],a[2]) # limite inférieure (Pop)
+limsup <- runif(1,b[1],b[2]) # limite supérieure (Pop)
+x <- runif(n,liminf,limsup)
+x
+summary(x)
+hist(x)
+```
+
+Le code suivant poursuit le même objectif, sauf que la distribution de la population est supposée normale, avec une certaine moyenne et un certain écart-type, qui sont sélectionnés au hasard à l'intérieur d'étendues données.Ces paramètres sont donc indéterminés. 
+
+```{r 01-Chap1-52}
+n <- 50      # nombre d'observations à générer
+moy <- 100   # Moyenne (population)
+et <- 15     # Écart-Type (population)
+sem <- et/sqrt(n)
+moypop <- runif(1,moy-1.96*sem,moy+1.96*sem)
+etpop <- runif(1,et-et/3,et+et/3)
+x <- rnorm(n,moypop,etpop)
+x
+summary(x)
+hist(x)
+```
+
+Dans les unités suivantes, la génération de tels nombres aléatoires nous sera très utile.
+
+## Création de fonctions
+
+Dans les paragraphes précédents, plusieurs fonctions faisant partie de l'environnement R de base ont été présentées. Cet environnement contient une foule de fonctions disponibles sans qu'il soit nécessaire de charger une librairie. On peut obtenir une liste de ces fonctions en lançant la commande:
+
+```{r eval=FALSE}
+library(help = "base")
+```
+S'ajoutent à ces fonctions de base un grand nombre de librairies de fonctions permettant la production de graphiques, par exemple. Sous RStudio, une liste de ces librairies est disponible sous l'onglet **Packages** du panneau **Files/Plots/Packages...**, dans la section libellée **System Library**:
+
+![Librairies chargées automatiquement](./images/Packages.png)
+Malgré l'ampleur des fonctions disponibles dans l'environnement R de base, il est souvent utile, ou même nécessaire, de pouvoir définir des fonctions permettant des opérations répétitives. Le processus est simple:  
+1. Choisir un nom descriptif pour la fonction
+2. Définir le ou les arguments que l'on veut soumettre au traitement
+3. Écrire le code approprié pour la tâche à exécuter
+4. Faire en sorte que le résultat soit accessible au sortir de la fonction.  
+  
+L'exemple suivant illustre la création d'une fonction et son utilisation. Supposons qu'il vous soit nécessaire de calculer la ou les racines d'une fonction quadratique. Vous vous rappelez que pour une fonction du second degré, telle que $y = ax^2+bx+c$, y est nulle pour les valeurs de x données par:
+
+$$x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}$$
+Créons une fonction nommée **racquad()**, dont les arguments seront le coefficient quadratique **a**, le coefficient linéaire **b** et la constante **c**. La syntaxe appropriée serait:
+
+```{r}
+racquad = function(a,b,c){
+  # Calcul de la quantité sous la racine carrée
+  num <- b^2-4*a*c 
+  # Valeur négative? ==> Nombre complexe
+  if(num<0){num = as.complex(num)}
+  # Calcul des racines de la fonction et sortie
+  r <- (-b+c(1,-1)*sqrt(num))/(2*a)
+return(r)
+}
+```
+La fonction **as.complex()** utilisée dans l'énoncé conditionnel **if()** fait de **num** un nombre complexe dans l'éventualité que la quantité sous la racine carrée est négative. 
+
+Vérifions notre travail en obtenant les racines de la fonction
+
+$$y = 2.7x^2-6.3x+3.2$$
+
+```{r}
+a <- 2.7
+b <- -6.3
+c <- 3.2
+rac = racquad(a,b,c)
+cat("Les racines de cette fonction sont: ",rac)
+```
+> Notez qu'une fonction de ce type peut ne pas avoir de racines, auquel cas R rapportera **NA** comme réponse. 
+
+Quelles sont les racines, si elles existent, de $y = 5.7x^2-8.3x+12.2$:
+
+```{r}
+a <- 5.7
+b <- -8.3
+c <- 12.2
+cat("Les racines de cette fonction sont: ",racquad(a,b,c))
+```
+Les racines de cette fonction sont des nombres imaginaires.
+
+La définition de fonctions devient vite une activité routinière pour tout analyste utilisant l'environnement R. Prenez note de la syntaxe générale et mettez-la en application dès qu'un ensemble d'opérations à effectuer sur des données est répétitif. Pour plus de détails, l'article suivant pourra vous être utile: [Fonctions en R](https://stt4230.rbind.io/programmation/fonctions_r/)
+
+## L'ajout de LIBRAIRIES ('PACKAGES')
+
+Une librairie ('package') est un ensemble d'objets (données, fonctions) produit par des individus et mis à la disposition de la communauté. Ces librairies sont ajoutées à l'environnemnt R selon les besoins de l'analyste. Il existe plusieurs milliers de telles librairies, librement disponibles. Il est donc important d'être en mesure de charger une librairie dans notre espace de travail. Sous RStudion, cette tâche devient vite triviale.
+
+### Librairies provenant de dépôts (CRAN)
+
+Le premier item apparaissant sous l'onglet 'TOOLS' du menu principal de RStudio est: '**INSTALL PACKAGES...**':
+
+![Menu TOOLS](./images/Tools_install_package.png)
+
+Cette option produit la fenêtre suivante:
+
+![Install Packages](./images/Install_Packages.png)
+
+Supposons que l'on ait besoin d'une librairie portant le nom 'Desctools', contenant plusieurs fonctions susceptibles d'être utiles pour l'analyse descriptive d'ensembles de données: 
+
+![Installation de la librairie DescTools](./images/Install_DescTools.png)
+
+En cliquant '**OK**', le processus se poursuit dans la console. De manière alternative, on peut simplement lancer la commande suivante dans la console:
+
+**install.packages("DescTools")**
+
+Une librairie demeure en permanence en dormance dans votre système. Lorsque vous en avez besoin, il suffit de la ramener dans l'espace de travail avec la fonction 'library()':
+
+```{r 01-Chap1-53}
+library(DescTools)
+```
+Une fois chargée dans l'espace de travail, l'ensemble des objets que la librairie contient devient disponible pour une utilisation immédiate. Par exemple:
+
+```{r 01-Chap1-54}
+library(DescTools)
+x <- rnorm(1000)
+PlotFdist(x)
+```  
+
+Ici, la fonction **PlotFdist()** n'est qu'une des fonctions mises à votre disposition dans la librairie DescTools.
+
+### Chargement de librairies à partir de GITHUB
+
+Certaines librairies ne sont pas accessibles de la manière décrite ci-dessus, par contre. C'est le cas d'une librairie créée spécifiquement pour ce cours, contenant l'ensemble des fonctions qui seront utilisées pour illustrer les concepts qui seront à l'étude. Pour la charger dans l'environnement de travail, suivez les étapes suivantes:
+
+1. Installez la librairie **devtools**
+2. Chargez cette librairie dans votre environnement
+3. Installez la librairie **isteahMAT104**, à partir de GitHub
+4. Chargez cette librairie dans votre environnement
+
+```{r eval = FALSE}
+install.packages("devtools")
+library(devtools)
+install_github("dco61/isteahMAT104")
+library(isteahMAT104)
+
+```
+#### Chargement d'une fonction particulière
+
+Lorsque le nom d'une fonction faisant partie d'une librairie est connu, et que l'on a besoin spécifiquement de cette fonction, on peut l'appeler sans avoir à charger la librairie entière. Il suffira d'utiliser la syntaxe suivante, appliquée à la fonction **PlotFdist()**, comme exemple:
+
+```{r}
+x <- rnorm(1000)
+DescTools::PlotFdist(x)
+
+```
+De la même manière, l'installation de la librairie **isteahMAT104** est simplifiée:
+
+```{r eval=FALSE}
+# devtools::install_github(Nom_de_Compte/Nom_de_librairie)
+
+# Exemple:
+
+devtools::install_github("dco61/isteahMAT104")
+
+```
+
+#### Liste des fonctions contenues dans une librairie
+
+Lorsqu'une librairie est chargée dans votre environnement, vous pouvez obtenir une liste des fonctions qu'elle comporte à l'aide de la fonction **ls()**, ou de la fonction **lsf.str()**, qui ajoute la liste des arguments de chaque fonction. Par exemple:
+
+```{r}
+library(isteahMAT104)
+ls("package:isteahMAT104")
+lsf.str("package:isteahMAT104")
+```
+#### Aide concernant une librairie
+
+Vous pouvez obtenir de l'aide concernant une librairie en lançant la commande:
+
+```{r 01-Chap1-55, eval=FALSE}
+??DescTools
+```
+La fenêtre d'aide affiche un guide d'utilisation de la librairie.
+
+#### Examiner le code R d'une fonction
+
+Parfois, il est intéressant d'examiner le code R définissant une fonction particulière. On peut visualiser ce code en inscrivant simplement le nom de la fonction (sans argument, ni parenthèses) dans la console. Par exemple:
+
+```{r}
+RandNorm
+
+```
+#### Charger une librairie à l'intérieur d'une fonction
+
+Lors du développement de fonctions, il est souvent nécessaire d'appeler d'autres fonctions provenant de librairies. On peut évidemment charger ces librairies au préalable, de sorte que les fonctions nécessaires se trouvent dans l'environnement au moment où on en a besoin. Par contre, il est facile d'oublier de charger ces librairies. La fonction **require()** permet de charger une librairie selon les besoins. Par exemple, un énoncé conditionnel tel que le suivant installera **DescTools** s'il n'est pas déjà dans votre collection de librairies, à l'intérieur d'une fonction:
+
+```{r eval=FALSE}
+if (require("DescTools")) install.packages("DescTools")
+```
+Pour vérifier qu'une librairie (**DescTools** par exemple) est installée, on peut lancer une commande telle que:
+
+```{r}
+"DescTools" %in% rownames(installed.packages())
+
+```
+On obtiendra **TRUE** si la librairie est présente à l'appel, et **FALSE** dans le cas contraire.
+
+
+Lorsqu'approprié, on vous informera des librairies que vous devrez charger dans votre système.
+
+
+### Chargement de librairies à partir de fichiers .ZIP ou .TAR.GZ
+
+Finalement, il est également possible d'installer une librairie à partir d'un fichier local. Par exemple, le fichier **isteahMAT104_0.5.1.tar.gz** contient localement l'intégralité de la librairie **isteahMAT104**.  On peut le télécharger directement de [GITHUB](https://github.com/dco61/isteahMAT104/archive/refs/heads/main.zip), ou du site réservé pour ce cours.
+
+Sous RStudio, il suffira d'utiliser **Tools** - **Install Packages...** - **Install from...** - **Package Archive file (.zip, .tar.gz)**, et naviguer vers le fichier contenant la librairie:
+
+![Installation d'une librairie à partir d'un fichier local](./images/InstPack.png) 
+
+Finalement, en supposant que le fichier se trouve dans le répertoire de travail (x:\), la fonction suivante fera un travail similaire: 
+
+```{r eval=FALSE}
+install.packages("x:/isteahMAT104.tar.gz",repos=NULL,type="source")
+```
+
+Le contenu de cette librairie sera décrit dans les chapitres suivants.
+
+## Sauvegarde/Récupération de l'environnement de travail
+
+L'environnement de travail contient l'ensemble des objets (variables, fonctions, structures de données) qui vous sont accessibles dans une session. Il est souvent utile de sauvegarder cet environnement de manière à pouvoir le recharger pour une session ultérieure. Cette opération est rendue possible à partir du menu principal de RStudio:
+
+![Sauvegarde de l'Environnement de travail](./images/SavEnv.png)
+  
+On peut également lancer la commande suivante dans la console, avec le même effet:
+```{r eval=FALSE}
+save.image("fichier_sauvegarde.RData")
+```
+en remplaçant **fichier_sauvegarde** par le chemin et le nom du fichier dans lequel la sauvegarde doit se faire.
+
+Lorsque nécessaire, on peut récupérer l'environnement de travail en utilisant:
+
+![Sauvegarde de l'Environnement de travail](./images/LoadEnv.png)
+  
+et en naviguant jusqu'au fichier préalablement sauvegardé. On peut également obtenir le même résultat en lançant la commande:
+
+```{r eval=FALSE}
+load("fichier_sauvegarde.RData")
+```
+Encore une fois, on remplacera **fichier_sauvegarde** par le chemin et le nom du fichier contenant la sauvegarde à récupérer.
+  
+## Conclusion
+
+Dans cette section, nous avons abordé les éléments fondamentaux de l'environnement R. Les opérations arithmétiques élémentaires ont été décrites, de même que quelques stratégies d'entrée et d'édition de données.  Nous avons introduit RStudio avec lequel nous travaillerons de préférece, en raison de la versatilité que cet interface offre. L'ensemble constitue une boîte à outils qui deviendra rapidement indispensable dans notre étude des probabilités et des statistiques. Les compétences qui vous développerez avec ce logiciel vous seront très utiles pour l'ensemble de vos études dans le programme de Sciences de l'ISTEAH. Prenez le temps de revoir ce matériel, manipulez des variables, appliquez les fonctions qui ont été présentées à diverses situations auxquelles vous pourriez penser. Plus vous vous immergerez dans cet 'univers', plus vous deviendrez confiant(e)s et efficaces dans vos démarches quantitatives.
+
+## Exercice 5
+
+1. Créez 4 vecteurs suivants:
+  a. nom : "Julien"   "Mathieu"  "Judith"   "Myrlande" "Harold" 
+  b. sexe: "Homme"    "Homme"    "Femme"    "Femme"    "Homme"
+  c. age:   23        22         25         26         32
+  d. ssn: "134-34-2345" "349-44-789"  "556-34-443"  "898-98-987"  "679-67-676" 
+
+2. Déterminez le type de chacune des variables
+3. Générez une séquence des valeurs de 1 à 5, sauvegardant le tout dans la variable 'subj'
+4. Formez une 'data.frame' regroupant les 6 variables que vous venez de créer. Placez la variable "subj" dans la première colonne.
+5. Utilisez la fonction fix() pour éditer votre travail, et ajoutez une nouvelle ligne contenant:  6, "Martin", "Homme", 28, "453-64-822"
+6. Ajoutez une nouvelle variable nommée 'education', de nature numérique, et contenant les valeurs: 12, 14, 11, 16, 13, 15
+7. Fermez l'éditeur pour revenir à la console. Examinez le résultat en inscrivant le nom de votre 'data.frame'.
+8. Calculez la somme de la variable 'Education', puis celle de la variable 'Age'
+9. Affichez les noms par ordre alphabétique
+10. En utilisant le code permettant de générer des données aléatoires provenant d'une population rectangulaire, répété ci-dessous:
+
+
+```{r 01-Chap1-56, eval=FALSE}
+n <- 50  # nombre d'observations à générer
+a <- c(10,20)  # étendue de la limite inférieure (population)
+b <- c(25,50)  # étendue de la limite supérieure (population)
+liminf <- runif(1,a[1],a[2]) # limite inférieure (Pop)
+limsup <- runif(1,b[1],b[2]) # limite supérieure (Pop)
+x <- runif(n,liminf,limsup)
+
+```
+
+générez un ensemble de 100 données de telle sorte que la plus petite valeur est comprise entre 50 et 65, et la plus grande valeur est comprise entre 100 et 125. (Note: prenez soin d'éditer le code R pour y introduire ces valeurs!).
+
+11. Quelles sont les valeurs minimum et maximum de cet ensemble de données?
+12. Combien de données sont supérieures à 90?
+13. Combien de données sont inférieures à 80?  
+14. Tracez un histogramme représentant la distribution de ces données.
+15. Une librairie pourrait nous être utile dans les discussions futures: '**resample**'. Utilisez **TOOLS > INSTALL PACKAGES...** pour installer cette librairie sur votre ordinateur.
+16. Lorsque l'installation de la librairie sera complétée, chargez-la dans votre espace de travail:
+
+```{r 01-Chap1-57}
+library(resample)
+```
+
+et exécutez la commande suivante pour en vérifier le bon fonctionnement:
+
+```{r 01-Chap1-58}
+bootC <- bootstrap(x, mean, seed = 0)
+print(bootC)
+hist(bootC)
+qqnorm(bootC)
+quantile(bootC, probs = c(.25, .975))
+CI.percentile(bootC)
+```
+
+Si des graphiques et des items étiquettés **Summary Statistics** apparaissent, l'installation s'est déroulée correctement, et de nouvelles fonctions ont été ajoutées à votre système.
+
+
+## Solutionnaire
+
+### Exercice 1
+
+> 1. Au marché, vous achetez pour 200 gourdes de pommes de terre, pour 327 gourdes de raisins, pour 178 gourdes d’ananas et pour 1238 gourdes de poisson. Utilisez la console R pour calculer le coût total de vos achats.
+
+```{r}
+200+327+178+1238
+```
+> 2. Arrivé à la caisse, vous vous rendez compte que qu’un des ananas est gâté et vous décidez de le retirer de votre achat, ce qui réduit le coût de 53 gourdes. Utilisez R pour calculer la somme qu’il vous reste à payer.
+
+```{r}
+200+327+178+1238 - 53
+```
+> 3. Pour que tout soit bien clair dans la transaction que vous effectuez au marché, lancez les commandes suivantes dans la console:
+
+```{r}
+pomme.de.terre <- 200
+raisins <- 327
+ananas <- 178 - 53
+poisson <- 1238
+
+a <- 'Le montant total à payer ce matin est: '
+montant <- pomme.de.terre + raisins + ananas + poisson
+cat(a,montant,' gourdes')
+```
+
+> 4. Les prix de certaines denrées ont changé depuis votre dernière visite au marché. Pour les pommes de terre, il y a une augmentation de 20%, et pour le poisson, une réduction de 38 gourdes. Vous voulez acheter les mêmes denrées que la dernière fois. Obtenez le montant de votre facture,,,
+
+```{r}
+pomme.de.terre <- 200*1.2 # 20% d'augmentation
+raisins <- 327
+ananas <- 178 - 53
+poisson <- 1238 - 38
+
+a <- 'Le montant total à payer ce matin est: '
+montant <- pomme.de.terre + raisins + ananas + poisson
+cat(a,montant,' gourdes')
+
+```
+### Exercice 2
+
+> 1. La largeur d'un rectangle mesure 4 centimètres, et sa hauteur mesure 18 centimètres. Quelle est la périphérie de ce rectangle?
+
+```{r}
+# La périphérie d'un rectangle est 2 fois sa largeur + sa hauteur
+2*(4 + 18) 
+```
+
+> 2. Quelle est la surface du rectangle décrit en (1)?
+
+```{r}
+# La surface d'un rectangle est sa largeur x sa hauteur
+4*18
+
+```
+
+> 3. Dans un mètre, il y a 39.37008 pouces. Combien y'a-t'il de pouces dans 2.5 mètres?
+
+```{r}
+2.5 * 39.37008
+```
+
+> 4. Le volume d'une sphère est égal à $(4\pi r^2)/3$. Quel serait le volume d'une sphère dont le **diamètre** serait égal à 8.92745?
+
+```{r}
+# Le rayon est la moitié du diamètre. Donc...
+rayon <- 8.92745/2
+cat("Le volume de la sphère = ",(4*pi*rayon^2)/3)
+```
+> 5. Si x = 4.5327 et y = 8.4893, quelle est la valeur de l'expression:
+
+$$\sqrt{(x^3+y^4)}-(x/2+x\cdot y/5)^3 $$ 
+```{r}
+
+x <- 4.5327 
+y <- 8.4893
+sqrt(x^3+y^4)-(x/2+x*y/5)^3
+```
+
+### Exercice 3
+
+> 1. Obtenez la liste des variables qui ont été créées dans votre espace de travail: fonction ls()
+
+```{r}
+ls()
+```
+
+> 2. Nous n’avons plus besoin de ces variables. Effacez 3 des variables qui se trouvent dans votre espace de travail: fonction rm()
+
+```{r}
+rm(rayon,x,y)
+
+```
+
+> 3. Pour vous faciliter la tâche, effacez toutes les variables en utilisant rm(list=ls()). 
+
+```{r}
+rm(list=ls())
+```
+
+> 4. Il y a 6.28981077 $m^3$ de pétrole dans un baril. Définissez une variable contenant ce facteur de conversion.
+
+```{r}
+baril.m3 <- 6.28981077
+```
+> 5. Un baril de pétrole vaut $60. Vous avez besoin de 25 $m^3$ de pétrole pour vos opérations hebdomadaires. Quel sera le montant de votre facture de pétrole?
+
+```{r}
+cat("Facture hebdomadaire = ", 25/baril.m3*60)
+```
+
+### Exercice 4
+
+> 1. Exécutez les commandes suivantes pour générer deux vecteurs composés de 20 nombres entiers compris entre 1 et 10. Ces données seront sauvegardés dans les variables x et y respectivement:
+
+```{r}
+x <- runif(20,1,10)
+y <- runif(20,1,10)
+```
+> 2. Dans la variable x, quelles sont les valeurs supérieures à 5?
+
+```{r}
+cat("Les indices des valeurs de x > 5 sont: ",which(x>5),"\n")  
+
+cat("Leurs valeurs sont: ",x[which(x>5)])
+```
+> 3. Dans la variable x, quelle est la somme des valeurs supérieures à 5?
+
+```{r}
+cat("La somme de ces valeurs est : ",sum(x[which(x>5)]))
+```
+
+> 4. Quelle est la valeur de $\sum_{i = 1}^{20}{x_i^2}$ ?
+
+```{r}
+cat("La somme des carrés de x = ",sum(x^2))
+```
+
+> 5. Définissez un vecteur nommé $y$ contenant la séquence des valeurs de 1 à 20.
+
+```{r}
+y <- 1:20
+```
+
+> 6. Calculez la somme de x et du vecteur que vous venez de définir.
+
+```{r}
+x + y
+```
+
+> 7. Déterminez l’étendue de la variable x.
+
+```{r}
+range(x)
+```
+
+> 8. Calculez la somme des produits xy.
+
+```{r}
+sum(x*y)
+```
+
+> 9. Déterminez le vecteur des valeurs les plus élevées de x et de y.
+
+```{r}
+pmax(x,y)
+
+```
+> 10. Déterminez le vecteur des valeurs les plus petites de x et de y.
+
+```{r}
+pmin(x,y)
+
+```
+
+### Exercice 5
+
+> 1. Créez 4 vecteurs suivants:
+  a. nom : "Julien"   "Mathieu"  "Judith"   "Myrlande" "Harold" 
+  b. sexe: "Homme"    "Homme"    "Femme"    "Femme"    "Homme"
+  c. age:   23        22         25         26         32
+  d. ssn: "134-34-2345" "349-44-789"  "556-34-443"  "898-98-987"  "679-67-676" 
+  
+```{r}
+nom <- c("Julien","Mathieu","Judith","Myrlande","Harold")
+sexe <- c("Homme","Homme","Femme","Femme","Homme")
+age <- c(23,22,25,26,32)
+ssn <- c("134-34-2345", "349-44-789",  "556-34-443",  "898-98-987",  "679-67-676")
+```
+
+> 2. Déterminez le type de chacune des variables
+
+```{r}
+typeof(nom)
+typeof(sexe)
+typeof(age)
+typeof(ssn)
+```
+
+> 3. Générez une séquence des valeurs de 1 à 5, sauvegardant le tout dans la variable 'subj'
+
+```{r}
+subj <- 1:5
+```
+
+> 4. Formez une 'data.frame' regroupant les 6 variables que vous venez de créer. Placez la variable "subj" dans la première colonne.
+
+```{r}
+df <- data.frame(subj,nom,sexe,age,ssn)
+```
+
+> 5. Utilisez la fonction fix() pour éditer votre travail, et ajoutez une nouvelle ligne contenant:  6, "Martin", "Homme", 28, "453-64-822"
+
+```{r eval=FALSE}
+fix(df)
+```
+
+> 6. Ajoutez une nouvelle variable nommée 'education', de nature numérique, et contenant les valeurs: 12, 14, 11, 16, 13, 15
+
+```{r eval=FALSE}
+fix(df)
+```
+
+> 7. Fermez l'éditeur pour revenir à la console. Examinez le résultat en inscrivant le nom de votre 'data.frame'.
+
+```{r}
+df
+```
+
+> 8. Calculez la somme de la variable 'Education', puis celle de la variable 'Age'
+
+```{r}
+cat("Somme de Education = ",sum(df$education))
+cat("Somme de Age = ",sum(df$age))
+```
+
+> 9. Affichez les noms par ordre alphabétique
+
+```{r}
+sort(df$nom)
+```
+
+> 10. En utilisant le code permettant de générer des données aléatoires provenant d'une population rectangulaire, répété ci-dessous:
+
+
+```{r eval=FALSE}
+n <- 50  # nombre d'observations à générer
+a <- c(10,20)  # étendue de la limite inférieure (population)
+b <- c(25,50)  # étendue de la limite supérieure (population)
+liminf <- runif(1,a[1],a[2]) # limite inférieure (Pop)
+limsup <- runif(1,b[1],b[2]) # limite supérieure (Pop)
+x <- runif(n,liminf,limsup)
+x
+summary(x)
+hist(x)
+```
+
+>générez un ensemble de 100 données de telle sorte que la plus petite valeur est comprise entre 50 et 65, et la plus grande valeur est comprise entre 100 et 125. (Note: prenez soin d'éditer le code R pour y introduire ces valeurs!).
+
+```{r}
+n <- 100  # nombre d'observations à générer
+a <- c(50,65)  # étendue de la limite inférieure (population)
+b <- c(100,125)  # étendue de la limite supérieure (population)
+liminf <- runif(1,a[1],a[2]) # limite inférieure (Pop)
+limsup <- runif(1,b[1],b[2]) # limite supérieure (Pop)
+x <- runif(n,liminf,limsup)
+
+```
+
+> 11. Quelles sont les valeurs minimum et maximum de cet ensemble de données?
+
+```{r}
+cat("Valeur minimum = ",min(x))
+cat("Valeur maximum = ",max(x))
+```
+
+> 12. Combien de données sont supérieures à 90?
+
+```{r}
+cat(sum(x>90)," valeurs de x sont supérieures à 90")
+
+```
+
+> 13. Combien de données sont inférieures à 80?
+
+```{r}
+cat(sum(x>90)," valeurs de x sont supérieures à 90")
+
+```
+
+> 14. Tracez un histogramme représentant la distribution de ces données.
+
+```{r}
+hist(x)
+```
+
+## Références
+
+**Manuels**:
+
+E. Gallic, https://egallic.fr/Enseignement/R/Book/avant-propos.html
+
+O. Decourt, Le langage R au Quotidien, Dunod, Paris, 2018
+
+P. Lafaye de Micheaux, R. Drouilhet & B. Liquet, Le logiciel R, Seconde Édition, Springer, Paris, 2014
+
+V. Goulet, Introduction à la programmation en R: https://cran.r-project.org/doc/contrib/Goulet_introduction_programmation_R.pdf
+
+W. N. Venables & D. M. Smith, An Introduction to R, R Core Team, 2021
+
+**Sites WEB**:
+
+R pour Scientifique:
+https://stt4230.rbind.io/ 
+
+R for Data Science: https://r4ds.had.co.nz/introduction.html 
+
+Learn R: https://www.codecademy.com/learn/learn-r 
+
+R Basics, Quick and Easy: http://www.sthda.com/english/wiki/r-basics-quick-and-easy
+
+R in 2 Hours (Youtube): https://www.youtube.com/watch?v=_V8eKsto3Ug
+
+R programming tutorial for beginners: https://intellipaat.com/blog/tutorial/r-programming/introduction/
+
+R tutorial for beginners: https://www.statmethods.net/r-tutorial/index.html
+
