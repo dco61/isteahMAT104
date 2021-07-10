@@ -6,6 +6,7 @@
 #'@importFrom dplyr "%>%"
 #'@importFrom dplyr "mutate"
 #'@importFrom tidyr "unite"
+#'@export
 
 BlackJack <- function(n = 30) {
     card_suits <- c("Pique", "Coeur", "Carreau", "Trèfle")
