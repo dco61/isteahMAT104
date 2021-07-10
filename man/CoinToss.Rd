@@ -12,7 +12,7 @@ CoinToss(n = 1, p = 0.5)
 \item{p}{probability of a 'success' (Tail/Head), default = 0.5}
 }
 \value{
-either "Pile" or "Face"
+either 'Pile' or 'Face'
 }
 \description{
 Tossing a coin

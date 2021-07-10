@@ -9,10 +9,16 @@
 #' p1 <- perm.n.k(n=6,k=2)
 #' p2 <- perm.n.k(10,4)
 #' @export
-perm.n.k <- function(n,k){
-  if(!testInt(n)){stop("n must be an integer value!")}
-  if(!testInt(k)){stop("k must be an integer value!")}
-  if(k>n){stop("n must be greater or equal to k!")}
-  prm <- factorial(n)/factorial(n-k)
-  return(prm)
+perm.n.k <- function(n, k) {
+    if (!testInt(n)) {
+        stop("n must be an integer value!")
+    }
+    if (!testInt(k)) {
+        stop("k must be an integer value!")
+    }
+    if (k > n) {
+        stop("n must be greater or equal to k!")
+    }
+    prm <- factorial(n)/factorial(n - k)
+    return(prm)
 }

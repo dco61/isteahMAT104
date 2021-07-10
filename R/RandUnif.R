@@ -10,12 +10,12 @@
 #'      lower limit set randomly from 1-5, and the upper limit set
 #'      randomly from 10-15
 #'@export
-RandUnif = function(n=50,a=c(10,20),b=c(25,50)){
-  if(b[1]<a[2]){
-    stop("b[1]<a[2]! Veuillez corriger!")
-  }
-  liminf = runif(1,a[1],a[2]) # limite inférieure (Pop)
-  limsup = runif(1,b[1],b[2]) # limite supérieure (Pop)
-  x = runif(n,liminf,limsup)
-  return(x)
+RandUnif <- function(n = 50, a = c(10, 20), b = c(25, 50)) {
+    if (b[1] < a[2]) {
+        stop("b[1]<a[2]! Veuillez corriger!")
+    }
+    liminf <- runif(1, a[1], a[2])  # limite inférieure (Pop)
+    limsup <- runif(1, b[1], b[2])  # limite supérieure (Pop)
+    x <- runif(n, liminf, limsup)
+    return(x)
 }

@@ -4,44 +4,44 @@
 \alias{SampDistr}
 \title{This function draws any number of samples of size n from a population vector.
 Parametera are:
-	- popdata = vector of population values
-	- N_Sample = number of sample to draw from the population data (default = 1000)
-	- n = sample size (default=25)
+\t\t- popdata = vector of population values
+\t\t- N_Sample = number of sample to draw from the population data (default = 1000)
+\t\t- n = sample size (default=25)
 Output is a data frame containing:
-	- Samp_Means=means: sample means
-	- Samp_cil=cil: Sample confidence interval lower limits
-	- Samp_ciu=ciu,: Sample confidence interval upper limits
-	- Samp_Median=medians: Sample medians
-	- Samp_Var=variances: Sample variances
-	- Samp_SD=stdeviations: Sample Standard Deviations
-	- Samp_MAD=mean_abs_dev: Sample Mean Absolute Deviations
-		- Std_Error=std.err.mean: Sample Standard Error of the Means
-	- Samp_Skewness=skew: Sample Skewness
-		- Samp_Kurtosis=kurtos: Sample Kurtosis
-	- Samp_JB=jb: Sample Jarque-Bera Statistics
-	- Samp_Size=samp.size: Sample size
-	- popdata: Dataset from which samples have been drawn}
+\t\t- Samp_Means=means: sample means
+\t\t- Samp_cil=cil: Sample confidence interval lower limits
+\t\t- Samp_ciu=ciu,: Sample confidence interval upper limits
+\t\t- Samp_Median=medians: Sample medians
+\t\t- Samp_Var=variances: Sample variances
+\t\t- Samp_SD=stdeviations: Sample Standard Deviations
+\t\t- Samp_MAD=mean_abs_dev: Sample Mean Absolute Deviations
+\t\t- Std_Error=std.err.mean: Sample Standard Error of the Means
+\t\t- Samp_Skewness=skew: Sample Skewness
+\t\t- Samp_Kurtosis=kurtos: Sample Kurtosis
+\t\t- Samp_JB=jb: Sample Jarque-Bera Statistics
+\t\t- Samp_Size=samp.size: Sample size
+\t\t- popdata: Dataset from which samples have been drawn}
 \usage{
 SampDistr(popdata, N_Sample = 1000, n = 25)
 }
 \description{
 This function draws any number of samples of size n from a population vector.
 Parametera are:
-	- popdata = vector of population values
-	- N_Sample = number of sample to draw from the population data (default = 1000)
-	- n = sample size (default=25)
+\t\t- popdata = vector of population values
+\t\t- N_Sample = number of sample to draw from the population data (default = 1000)
+\t\t- n = sample size (default=25)
 Output is a data frame containing:
-	- Samp_Means=means: sample means
-	- Samp_cil=cil: Sample confidence interval lower limits
-	- Samp_ciu=ciu,: Sample confidence interval upper limits
-	- Samp_Median=medians: Sample medians
-	- Samp_Var=variances: Sample variances
-	- Samp_SD=stdeviations: Sample Standard Deviations
-	- Samp_MAD=mean_abs_dev: Sample Mean Absolute Deviations
-		- Std_Error=std.err.mean: Sample Standard Error of the Means
-	- Samp_Skewness=skew: Sample Skewness
-		- Samp_Kurtosis=kurtos: Sample Kurtosis
-	- Samp_JB=jb: Sample Jarque-Bera Statistics
-	- Samp_Size=samp.size: Sample size
-	- popdata: Dataset from which samples have been drawn
+\t\t- Samp_Means=means: sample means
+\t\t- Samp_cil=cil: Sample confidence interval lower limits
+\t\t- Samp_ciu=ciu,: Sample confidence interval upper limits
+\t\t- Samp_Median=medians: Sample medians
+\t\t- Samp_Var=variances: Sample variances
+\t\t- Samp_SD=stdeviations: Sample Standard Deviations
+\t\t- Samp_MAD=mean_abs_dev: Sample Mean Absolute Deviations
+\t\t- Std_Error=std.err.mean: Sample Standard Error of the Means
+\t\t- Samp_Skewness=skew: Sample Skewness
+\t\t- Samp_Kurtosis=kurtos: Sample Kurtosis
+\t\t- Samp_JB=jb: Sample Jarque-Bera Statistics
+\t\t- Samp_Size=samp.size: Sample size
+\t\t- popdata: Dataset from which samples have been drawn
 }

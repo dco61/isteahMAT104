@@ -11,12 +11,12 @@ GraphDist(xb, nc = 0.95, parm = "Means")
 
 \item{nc}{scalar value: Confidence level (default = 0.95)}
 
-\item{parm}{character value: name of the estimated parameter (default = "Mean")}
+\item{parm}{character value: name of the estimated parameter (default = 'Mean')}
 }
 \description{
 Graph Sampling Distribution
 }
 \examples{
 xb <- rnorm(1000,100,2)
-GraphDist(xb,nc=0.99,parm="Medians")
+GraphDist(xb,nc=0.99,parm='Medians')
 }

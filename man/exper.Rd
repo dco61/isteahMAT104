@@ -9,9 +9,9 @@ exper(x, nrep = 5000, n = 25, nconf = 0.95)
 \arguments{
 \item{x}{Population data}
 
-\item{nrep}{scalar value: number of samples to draw (default = 5000)}
+\item{nrep}{scalar value: number of samples to draw (default <- 5000)}
 
-\item{n}{scalar value: sample size (default = 25)}
+\item{n}{scalar value: sample size (default <- 25)}
 
 \item{nconf}{scalar value: Confidence level}
 }

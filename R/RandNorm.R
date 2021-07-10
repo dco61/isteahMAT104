@@ -12,11 +12,11 @@
 #'      randomly chosen between 50 +/- 1.96 Std. Err. of the mean, and a standard deviation
 #'      randomly chosen from 8 +/- et/3
 #'@export
-RandNorm = function(n=50,moy=100,et=15){
-  sem = et/sqrt(n)
-  moypop = runif(1,moy-1.96*sem,moy+1.96*sem)
-  etpop = runif(1,et-et/3,et+et/3)
-  x = rnorm(n,moypop,etpop)
-  return(x)
+RandNorm <- function(n = 50, moy = 100, et = 15) {
+    sem <- et/sqrt(n)
+    moypop <-runif(1, moy - 1.96 * sem, moy + 1.96 * sem)
+    etpop <- runif(1, et - et/3, et + et/3)
+    x <- rnorm(n, moypop, etpop)
+    return(x)
 }
 
