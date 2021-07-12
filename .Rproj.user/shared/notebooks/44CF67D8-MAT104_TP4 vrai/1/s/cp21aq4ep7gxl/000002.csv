@@ -1,0 +1,5 @@
+"0","# Rédigez votre code R sous cette ligne"
+"0","# Départements du Nord (6, 7 et 8)"
+"0","subpop = subset(HaitiPop,((DEPARTEMENT %in% c(""6"",""7"",""8"") & (AGE>=25))))"
+"0","x = subpop[sample(1:nrow(subpop),25,replace=FALSE),]"
+"0","head(x,10)"

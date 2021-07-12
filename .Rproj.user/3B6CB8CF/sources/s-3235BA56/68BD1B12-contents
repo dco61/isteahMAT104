@@ -1,0 +1,21 @@
+permtest2i <- function(x,y,FUN=mean,nrep=10000){
+  difference=diff(tapply(x,y,FUN))
+  s=sample(x,length(x),replace=FALSE)
+  diff(tapply(y,s,FUN))
+  dist=replicate(5000,diff(tapply(y,sample(x,length(x),replace=FALSE),FUN)))
+  hist(dist, xlim = c(-3, 3), breaks = "FD") 
+  abline(v = diff(tapply(y, tr, FUN=mean)), col = "red", lwd = 2)
+  sum(dist > diff(tapply(y, tr, FUN=mean)))/5000  # Test unidirectionnel
+  # Test bidirectionnel
+  sum(abs(dist) > diff(tapply(y, tr, FUN=mean)))/5000
+  
+}
+difference=diff(tapply(y,tr,FUN=mean))
+s=sample(tr,length(tr),replace=FALSE)
+diff(tapply(y,s,FUN=mean))
+dist=replicate(5000,diff(tapply(y,sample(tr,length(tr),replace=FALSE),FUN=mean)))
+hist(dist, xlim = c(-3, 3), breaks = "FD") 
+abline(v = diff(tapply(y, tr, FUN=mean)), col = "red", lwd = 2)
+sum(dist > diff(tapply(y, tr, FUN=mean)))/5000  # Test unidirectionnel
+# Test bidirectionnel
+sum(abs(dist) > diff(tapply(y, tr, FUN=mean)))/5000

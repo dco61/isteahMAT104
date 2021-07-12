@@ -1,0 +1,8 @@
+"0","library(openintro)"
+"0","#p1 <- round(as.vector(pcond[1,1:3]),3)"
+"0","#p2 <- round(as.vector(pcond[2,1:3 ]),3)"
+"0","p1 <- round(pcond[1,1:3],3)"
+"0","p2 <- round(pcond[2,1:3 ],3)"
+"0","treeDiag(c(""Event A"",""Event B""), c(.6,.4),"
+"0","         list(p1,p2), c(""A1"",""A2""),c(""B1"", ""B2"",""B3""),"
+"0","         showWork = TRUE)"

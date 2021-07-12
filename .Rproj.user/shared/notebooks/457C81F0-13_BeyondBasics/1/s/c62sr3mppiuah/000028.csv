@@ -1,0 +1,2 @@
+"0","nearest <- nearest_point(x, y, intercept, slope)"
+"0","segments(x, y, nearest[,""x""], nearest[,""y""], lty=""dotted"")"

@@ -1,0 +1,8 @@
+n <- c(5,5,4,4)   # Sample Sizes
+N <- sum(n)
+l <- c(0,5,10,20) # Treatment Levels
+l1 <- l/min(l[l!=0])
+c1 <- ((-sum(l1*n)/N) + l1)
+
+
+c1

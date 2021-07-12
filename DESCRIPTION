@@ -3,10 +3,17 @@ Version: 0.5.3
 Title: MAT104 Probabilité et Statistiques
 Type: Package
 Author: Daniel Coulombe
+Maintainer: Daniel Coulombe <dcoulombe60@gmail.com>
 RoxygenNote: 7.1.1
+License: MIT + file LICENSE
+Description: 
+    Ensemble de fonctions utilisées dans le cours MAT-104, Probabilités et Statistiques
+    offert au Printemps 2021, par l'Institut des Sciences, des Technologies et des Études
+    Avancées d'Haiti (ISTEAH)
 Imports:
     wakefield,
     LaplacesDemon,
     dplyr,
-    tidyr
+    tidyr,
+    DiagrammeR
 Encoding: UTF-8

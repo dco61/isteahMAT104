@@ -1,0 +1,7 @@
+"0","x=matrix(c(20,30,40,10,20,30),nrow=2,byrow=TRUE)"
+"0","tbl <- cbind(x,rowSums(x))"
+"0","tbl <- rbind(tbl,c(colSums(x),sum(x)))"
+"0","rownames(tbl) <- c(""A1"",""A2"",""Tc"")"
+"0","colnames(tbl) <- c(""B1"",""B2"",""B3"",""Tr"")"
+"0","kable(tbl, booktabs=TRUE,caption=""Répartition des Effectifs"") %>%"
+"0","  kable_styling(full_width = FALSE)"

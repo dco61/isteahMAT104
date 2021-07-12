@@ -1,0 +1,72 @@
+---
+title: "testtable"
+author: "Daniel Coulombe"
+date: "12/07/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(kableExtra)
+```
+
+```{r}
+x=matrix(c(20,30,40,10,20,30),nrow=2,byrow=TRUE)
+tbl <- cbind(x,rowSums(x))
+tbl <- rbind(tbl,c(colSums(x),sum(x)))
+rownames(tbl) <- c("A1","A2","Tc")
+colnames(tbl) <- c("B1","B2","B3","Tr")
+kable(tbl, booktabs=TRUE,caption="Répartition des Effectifs") %>%
+  kable_styling(full_width = FALSE)
+``` 
+  
+  
+```{r}
+format_cells <- function(df, rows ,cols, value = c("italics", "bold", "strikethrough")){
+
+  # select the correct markup
+  # one * for italics, two ** for bold
+  map <- setNames(c("*", "**", "~~"), c("italics", "bold", "strikethrough"))
+  markup <- map[value]  
+
+  for (r in rows){
+    for(c in cols){
+
+      # Make sure values are not factors
+      df[[c]] <- as.character( df[[c]])
+
+      # Update formatting
+      df[r, c] <- paste0(markup, df[r, c], markup)
+    }
+  }
+
+  return(df)
+}
+```
+format_cells(tbl, 1:2 ,4, value = "bold")
+
+```{r}
+tbl %>%
+  format_cells(1, 1, "italics") %>%
+  format_cells(2, 2, "bold") %>%
+  format_cells(3, 1:2, "strikethrough") %>%
+  knitr::kable()
+```
+
+```{r}
+
+df <- data.frame(char = c('a','b','c'),
+                 num = c(1,2,3))
+
+df %>%
+  format_cells(1, 1, "italics") %>%
+  format_cells(2, 2, "bold") %>%
+  format_cells(3, 1:2, "strikethrough") %>%
+  knitr::kable()
+df
+```
+
+

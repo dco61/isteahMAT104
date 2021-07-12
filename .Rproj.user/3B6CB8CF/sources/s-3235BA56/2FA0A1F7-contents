@@ -1,0 +1,270 @@
+---
+title: "Travail Pratique #4"
+author: "Alexandre Jovenel"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    number_sections: true
+---
+
+```{r message=FALSE}
+set.seed(1234567)
+```
+
+# Objectifs d'apprentissage
+
+> Ce TP porte sur l'estimation statistique et les tests d'hypothèse. Référez-vous aux documents fournis dans le cours au besoin, pour effectuer les exercices suivants, qui feront référence à une banque de données simulant la population Haitienne. Les caractéristiques et la composition de cette banque de données sont présentées dans les documents du cours 4, 7 juin 2021. Il s'agit de la même banque que pour le TP3. Si ces données sont déjà dans votre environnement R, vous pouvez passer à l'item 2.
+
+# Question 1: Génération de la population (simulée)
+> 1. Pour les besoins de ce travail, vous devez exécuter le code R suivant afin de générer le 'data frame' **HaitiPop**:. Pour lancer la création des données, cliquez sur le triangle apparaissant à droite de la première ligne, ci-dessous. NOTE: Soyez patient! le processus peut prendre quelques minutes!
+
+```{r}
+# HaitiPop: Simultation de la population Haitienne (2019)
+# Genre Féminin, effectif par groupe d'âge (données de 2019)
+Age_female=c(620842, 608143, 590011, 565536, 531966, 493101, 458841,
+             410081, 309636, 245577, 218103, 187285, 149090, 118763,
+             80994, 60334, 34915, 15440, 5211, 1397, 217) 
+
+# Genre Masculin, effectif par groupe d'âge (données de 2019)
+Age_male=c(645049, 629568, 607263, 571570, 525211, 479976, 442822, 
+           390944, 286062, 221042, 199898, 169226, 135904, 102412, 
+           64604, 47325, 24681, 10151, 3085, 720, 83)  
+PopTotale = sum(Age_male)+sum(Age_female)
+
+# Génération des âges et du genre
+age = c(seq(4,104,by=5))
+AGE = vector()
+GENRE = vector()
+for(i in 1:length(age)){
+  AGE = append(AGE,floor(runif(Age_male[i],(age[i]-4),age[i]+5)))
+  AGE = append(AGE,floor(runif(Age_female[i],(age[i]-4),age[i]+5)))
+  GENRE = append(GENRE,rep("M",Age_male[i]))
+  GENRE = append(GENRE,rep("F",Age_female[i]))
+}
+Tdt = data.frame(AGE,GENRE)
+Tdt = Tdt[sample(nrow(Tdt)),1:2]
+# Génération des Départements et répartition de la population
+Dept = matrix(c(1:10,"Artibonite","Centre","Grand'Anse","Nippes",
+                "Nord","Nord-Est","Nord-Ouest","Ouest","Sud-Est",
+                "Sud"),nrow=2,byrow=TRUE)
+# cat("Identification des Départements: ","\n",t(Dept))
+# Proportion de la population par département
+PropDept = c(0.158316776, 0.037133348, 0.024201755, 0.018140699, 
+             0.057563731, 0.022548639, 0.042675426, 0.24647869, 
+             0.051350001, 0.066312107) 
+DEPARTEMENT = sample(Dept[1,],size=PopTotale,replace=TRUE, prob=PropDept)
+# Indice de condition de vie, distribution asymétrique
+CondxVie = rchisq(PopTotale,6)
+Tdt = data.frame(Tdt,DEPARTEMENT,CondxVie)
+# Génération des niveaux de scolarité atteints, population adulte
+EDUC=rep("NA",PopTotale)
+NivScol = c("Aucun","PréScol","Fond.1","Fond.2","Fond.2","Second",
+            "Univ.1","Univ.2","Univ.3")
+PropNivScol = c(0.2, 0.07, 0.2, 0.18, 0.12, 0.09, 0.06, 0.05, 0.03) 
+EDUC[Tdt$AGE>25] = sample(NivScol,sum(Tdt$AGE>25),prob=PropNivScol,replace=TRUE)
+
+# Génération de l'indice de criminalité
+
+CRIMIDX = rep("NA",PopTotale)
+idx = vector()
+for(i in 1:10){
+  idx[i] = sample(c(1,-1),1)*runif(1,0,30)
+}
+
+CRIMIDX = 0.3*CondxVie + 3.5*(Tdt$GENRE=="M")- 1.2*Tdt$AGE +
+  1.5*(EDUC<"Second")+ 10 + rnorm(1,0,4) +
+  idx[as.numeric(DEPARTEMENT)]
+CRIMIDX = CRIMIDX + (min(CRIMIDX)<0)*abs(min(CRIMIDX))
+CRIMIDX[which(Tdt$AGE<15)] = NA
+
+# Génération de l'indice d'habiletés cognitives
+HabilCog = rnorm(PopTotale,100,25)
+idx = vector()
+for(i in Dept){
+  idx[i] = sample(c(1,-1),1)*runif(1,0,10)
+}
+HabilCog = HabilCog+idx[DEPARTEMENT]
+
+# Génération de la préférence pour un candidat présidentiel
+# et de l'Opinion concernant la proposition d'une nouvelle Constitution
+
+library(wakefield)
+PrefPres = rep(NA,PopTotale)
+OpinConst = rep(NA,PopTotale)
+
+# Probabilités associées aux variables PresProb et OpinProb
+PresProb = matrix(c(0.58, 0.41, 0.003, 0.004, 0.003, # Nord-Ouest, Nord et Nord-Est
+                    0.41, 0.54, 0.003, 0.004, 0.043, # Artibonite et Centre
+                    0.27, 0.65, 0.006, 0.01, 0.064,  # Ouest
+                    0.15, 0.23, 0.38, 0.19, 0.05),   # Grand<Anse, Nippes, Sud et Sud-Est
+          nrow = 4, ncol = 5, byrow = TRUE)
+OpinProb = matrix(c(0.5,0.3,0.1,0.05,0.05,           # Nord-Ouest, Nord et Nord-Est
+                    0.2,0.4,0.1,0.1,0.2,             # Artibonite et Centre
+                    0.01,0.09,0.2,0.4,0.3,           # Ouest
+                    0.4,0.1,0.0,0.1,0.4),            # Grand<Anse, Nippes, Sud et Sud-Est
+          nrow = 4, ncol = 5, byrow = TRUE)
+Regions = list(c("5","6","7"), c("1","2"), c("8"),c("3","4","9","10"))         
+OptPres = c("CandA", "CandB", "CandC", "CandD", "CandE")
+OptOpin = c("Tout à fait d'accord","D'accord","Indécis","Pas d'accord","Pas du tout d'accord")
+
+for (i in 1:length(Regions)){
+  select = (Tdt$AGE>=18)&(DEPARTEMENT %in% Regions[[i]])
+  PrefPres[select] = political(n=sum(select),x = OptPres, 
+              prob = PresProb[i,], name =   "PrefPres")
+  OpinConst[select] = r_sample_ordered(n=sum(select), 
+  x = OptOpin, prob = OpinProb[i,], name = "OpinConst")
+  }
+
+# DATA.FRAME de sortie
+HaitiPop = data.frame(Tdt,EDUC,CRIMIDX,HabilCog,PrefPres,OpinConst)
+```  
+# Question 2: Estimation 
+
+> Pour cette question, vous aurez besoin d'échantillons tirés de la population que vous avez créée en (1).
+
+  a. Utilisez une procédure d'échantillonnage aléatoire simple pour obtenir un échantillon de 25 sujets âgés de 25+ ans, provenant du Nord du pays, soit des départments **Nord-Ouest, Nord et Nord-Est**. 
+```{r}
+# Rédigez votre code R sous cette ligne
+# Départements du Nord (6, 7 et 8)
+subpop=subset(HaitiPop,((DEPARTEMENT %in% c("7","5","6" ) & (AGE>=25))))
+ x=subpop[sample(1:nrow(subpop),25,replace=FALSE),]
+head(x,10)
+
+# N'inscrivez rien sous cette ligne
+
+```
+
+  b. Le Ministre de l'Emploi et de la Formation Professionnelle vous demande de lui fournir une estimation de la valeur moyenne du  niveau d'habiletés cognitives (**HabilCog**) des Haitiens vivant dans cette région du pays. Utilisez une procédure de ré-échantillonnage appropriée afin de fournir au Ministre l'estimation requise pour l'exercice de ses fonctions.
+    
+```{r}
+# Rédigez votre code R sous cette ligne
+x=subpop[sample(1:nrow(subpop),25,replace=FALSE),]
+x=x$HabilCog
+cat("moyenne=",mean(x))
+
+
+# N'inscrivez rien sous cette ligne
+
+```
+  c. Après avoir consulté votre rapport de recherche, le Ministre vous remercie chaleureusement, mais se demande s'il n'aurait pas été préférable d'obtenir une estimation du niveau **médian** d'habiletés cognitives. vous lui promettez de revenir le lendemain avec une nouvelle estimation répondant à sa question. Faites le nécessaire pour que promesse faite soit promesse tenue.
+  
+```{r}
+# Rédigez votre code R sous cette ligne
+x=subpop[sample(1:nrow(subpop),25,replace=FALSE),]
+x=x$HabilCog
+cat("mediane=",median(x))
+
+
+
+# N'inscrivez rien sous cette ligne
+
+```
+  d. Pleinement satisfait de votre travail, le Ministre vous fait part d'une question qui lui est venue à l'esprit durant sa marche matinale:  'Quelle pourrait être la différence entre la moyenne du niveau d'habiletés cognitive dans la région dont il a la responsabilité (soit l'ensemble des départments **Nord-Ouest, Nord et Nord-Est**), et celle de l'ensemble formé par les départements de l'**Ouest, du Centre et du sud**?'  Vous lui proposez donc d'examiner la question sans plus tarder, et pour ce faire, vous lui demandez le financement nécessaire pour pouvoir utiliser un échantillon de 75 sujets pour les départements du Nord, et de 90 sujets pour les départements du second ensemble. Faites le nécessaire pour répondre à cette nouvelle question du Ministre.
+  
+```{r}
+# Rédigez votre code R sous cette ligne
+subpop=subset(HaitiPop,((DEPARTEMENT %in% c("5","6","7" ) & (AGE>=25))))
+ x=subpop[sample(1:nrow(subpop),75,replace=FALSE),]
+head(x,10)
+subpop1=subset(HaitiPop,((DEPARTEMENT %in% c("2","8","10" ) & (AGE>=25))))
+ x=subpop[sample(1:nrow(subpop),90,replace=FALSE),]
+head(x,10)
+x=subpop[sample(1:nrow(subpop),75,replace=FALSE),]
+x=x$HabilCog
+cat("moyenne=",mean(x))
+x1=subpop1[sample(1:nrow(subpop),90,replace=FALSE),]
+x1=x1$HabilCog
+cat("moyenne1=",mean(x1))
+cat("Difference des Moyennes =",mean(x)-mean(x1))
+
+# N'inscrivez rien sous cette ligne
+
+```
+
+  e. Dans une récente réunion du Conseil des Ministres, votre ami a informé le Ministre chargé de la réforme constitutionnelles de vos talents d'analyste. Dès le lendemain, vous recevez un appel de ce Ministre, que vous offre le contrat de recherche afin d'obtenir une estimation du  niveau de consensus concernant le projet de nouvelle Constitution dans les départements du sud, soit l'ensemble formé par les départements de Grand'Anse, Nippes, Sud-Est, et Sud. Pour ce faire, il vous accorde le financement nécessaire pour la création d'un échantillon de 400 sujets. Vous acceptez ce nouveau défi. Faites le nécessaire pour donner satisfaction au Ministre responsable de la réforme constitutionnelle.
+    
+    
+```{r}
+# Rédigez votre code R sous cette ligne
+subpop=subset(HaitiPop,((DEPARTEMENT %in% c("3","4","9","10" ) & (AGE>=25))))
+ x=subpop[sample(1:nrow(subpop),400,replace=FALSE),]
+ x=x$OpinConst
+head(x,400)
+
+
+
+# N'inscrivez rien sous cette ligne
+
+```
+# Question 3: Test d'hypothèse 
+
+Votre nom circule abondamment dans le cercle administratif du pays, de sorte que très rapidement, les demandes affluent à votre bureau. Elles proviennent de différents Ministères et portent sur différents sujets, mais vos compétences vous permettent de toutes les considérer:  
+  
+a. Est-ce que l'indice de criminalité moyen (**CRIMIDX**) dans le département de Grand'Anse varie en fonction du sexe des individus ?
+ 
+ ```{r}
+# Rédigez votre code R sous cette ligne
+subpopH=subset(HaitiPop,((DEPARTEMENT=="3") & (GENRE=="M")&(AGE>=15)),CRIMIDX)
+subpopF=subset(HaitiPop,((DEPARTEMENT=="3") & (GENRE=="F")&(AGE>=15)),CRIMIDX)
+ xechH=subpopH[sample(1:nrow(subpopH),replace=FALSE),]
+ xechF=subpopF[sample(1:nrow(subpopF),replace=FALSE),]
+  
+cat("moyenne Homme=",mean(xechH))
+cat("moyenne Femme=",mean(xechF))
+
+# N'inscrivez rien sous cette ligne
+
+```
+ 
+b. Est-ce qu'il y a une différence entre le CRIMIDX moyen observé en Artibonite et celui observé dans le département du Sud-Est?
+  
+```{r}
+# Rédigez votre code R sous cette ligne
+subpopH=subset(HaitiPop,((DEPARTEMENT=="1") &(AGE>=15)),CRIMIDX)
+subpopF=subset(HaitiPop,((DEPARTEMENT=="9") &(AGE>=15)),CRIMIDX)
+
+ xechH=subpopH[sample(1:nrow(subpopH),replace=FALSE),]
+ xechF=subpopF[sample(1:nrow(subpopF),replace=FALSE),]
+cat("moyenne Artibonite=",mean(xechH))
+cat("moyenne Sud-Est=",mean(xechF))
+
+
+
+
+# N'inscrivez rien sous cette ligne
+
+```
+c. Est-ce que le consensus concernant le projet de nouvelle constitution est plus important dans le département du Nord-Est que dans le département du Sud?
+  
+```{r}
+# Rédigez votre code R sous cette ligne
+subpopH=subset(HaitiPop,((DEPARTEMENT=="6") ),OpinConst)
+subpopF=subset(HaitiPop,((DEPARTEMENT=="10") ),OpinConst)
+xechH=subpopH[sample(1:nrow(subpopH),nH,replace=FALSE),]
+ xechF=subpopF[sample(1:nrow(subpopF),nF,replace=FALSE),]
+
+cat("Consensus Nord-Est=",cons(xechH))
+cat("Consensus Sud=",cons(xechH))
+
+
+
+# N'inscrivez rien sous cette ligne
+
+```
+d. Est-ce que l'indice de condition de vie(**CondxVie**) est plus élevé chez les individus du groupe 20-40 ans que chez les gens de 60 ans et plus?
+```{r}
+# Rédigez votre code R sous cette ligne
+subpopH=subset(HaitiPop,((AGE>="20")&(AGE<="40") ),CondxVie)
+subpopF=subset(HaitiPop,((AGE>="60") ),CondxVie)
+xechH=subpopH[sample(1:nrow(subpopH),nH,replace=FALSE),]
+ xechF=subpopF[sample(1:nrow(subpopF),nF,replace=FALSE),]
+
+head(xechH,10)
+head(xechF,10)
+
+
+
+# N'inscrivez rien sous cette ligne
+
+```
