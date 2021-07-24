@@ -19,7 +19,3 @@ vector of observations, integer values
 \description{
 Sample from a binomial distribution, with random n and random p
 }
-\examples{
-x1 <- RandBin() # use defaults
-x2 <- RandBin(25,5,0.7) # draw 25 observations of results of 5 trials, with p=0.7
-}

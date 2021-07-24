@@ -9,6 +9,7 @@
 #'@examples
 #'xb <- rnorm(1000,100,2)
 #'GraphDist(xb,nc=0.99,parm='Medians')
+#'@export
 GraphDist <- function(xb, nc = 0.95, parm = "Means") {
     intc <- quantile(xb, c(0.5 * (1 - nc), nc + 0.5 * (1 - nc)))  # Calcul des percentiles
     cat("C[", round(intc[1], 3), "< ", parm, " < ", round(intc[2], 3), "] = ", 100 * nc, "%")

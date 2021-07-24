@@ -4,6 +4,7 @@
 #'@param p vector of probabilities of a 'success' (6 probs), default = 6X(1/6)
 #'       if it is a single value, the probabilities are equals
 #'@return Value of each die
+#'@export
 DiceRoll <- function(n = 1, p = rep(1, 6)) {
     if (!testInt(n)) {
         stop("n must be an integer!")

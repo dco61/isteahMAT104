@@ -6,6 +6,7 @@
 #'@param g number of GREEN balls in urn (default = 10)
 #'@param repl: with replacement (TRUE/FALSE)
 #'@return vector of 3 elements: numbers of balls drawn from each color
+#'@export
 polyUrn <- function(n = 20, r = 5, b = 7, g = 10, repl = FALSE) {
     if (!testInt(n)) {
         stop("n must be an integer!")

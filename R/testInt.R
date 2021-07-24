@@ -3,6 +3,7 @@
 #'
 #'@param x integer value to check: Must be numeric
 #'@return TRUE if integer, FALSE if not
+#'@export
 testInt <- function(x) {
     if (!is.numeric(x)) {
         stop("Argument must be numeric")
