@@ -1,0 +1,6 @@
+"0",""
+"0","dx = density(x, bw = bw.nrd0(x))"
+"0","plot(dx, frame = TRUE, col = ""steelblue"", "
+"0","     main = ""Diagramme de Densité"", cex.lab = 1.5,"
+"0","     cex.main = 1.75, lwd = 2)"
+"0",""

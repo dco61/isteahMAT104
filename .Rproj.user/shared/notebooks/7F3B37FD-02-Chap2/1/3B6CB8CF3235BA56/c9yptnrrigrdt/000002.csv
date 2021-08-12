@@ -1,0 +1,2 @@
+"0","kable(tbl, booktabs=TRUE, caption=""Distribution du nombre de Faces"",row.names=FALSE) %>%"
+"0","  kable_styling(full_width = FALSE)"

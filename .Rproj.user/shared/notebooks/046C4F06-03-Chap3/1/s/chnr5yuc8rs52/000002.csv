@@ -1,0 +1,6 @@
+"0","x = rnorm(1000,50,8)"
+"0","cat(""Nombre de valeurs uniques = "",length(unique(x)))"
+"1","Nombre de valeurs uniques = "
+"1"," "
+"1","1000"
+"0","hist(x,breaks=""FD"")"

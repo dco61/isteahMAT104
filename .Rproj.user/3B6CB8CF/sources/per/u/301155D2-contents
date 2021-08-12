@@ -1,0 +1,30 @@
+
+library(VennDiagram)
+grid.newpage();
+# A more complicated diagram
+venn.plot <- draw.triple.venn(
+  area1 = 65,
+  area2 = 75,
+  area3 = 85,
+  n12 = 35,
+  n23 = 15,
+  n13 = 25,
+  n123 = 5,
+  category = c("First", "Second", "Third"),
+  fill = c("lightblue", "lightcoral", "lightgreen"),
+#  lty = "blank",
+#  alpha = rep(3,3),
+  lwd = rep(2,3),
+  col = rep("black",3),
+  cex = 2,
+  cat.cex = 2,
+  cat.dist = rep(0.1,3),
+  cat.col = c("blue", "red", "darkgreen")
+);
+grid.draw(venn.plot);
+
+
+# A simple single-set diagram
+venn.plot <- draw.single.venn(100, "First");
+grid.draw(venn.plot);
+grid.newpage();

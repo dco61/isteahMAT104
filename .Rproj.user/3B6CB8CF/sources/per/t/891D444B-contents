@@ -1,0 +1,1464 @@
+---
+title: "MAT104 - Cours 4 - Statistiques Descriptives"
+author: "Daniel Coulombe"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    number_sections: true
+    highlight: pygments
+    theme: spacelab
+    fig_width: 5.6
+    fig_height: 4
+---
+
+
+```{r 03-Chap3-1, include = FALSE}
+knit_print.data.frame = function(x, ...) {
+  res = paste(c("", "", knitr::kable(x)), collapse = "\n")
+  knitr::asis_output(res)
+}
+
+registerS3method(
+  "knit_print", "data.frame", knit_print.data.frame,
+  envir = asNamespace("knitr")
+)
+```
+
+```{r 03-Chap3-2, include = FALSE}
+knitr::opts_chunk$set(out.height = "\\textheight",  out.width = "\\textwidth")
+library(formatR)
+```
+
+```{r 03-Chap3-3, include=FALSE}
+if(knitr::is_html_output()){options(knitr.table.format = "html")} else {options(knitr.table.format = "latex")}
+```
+
+```{r 03-Chap3-4,message=FALSE,echo=FALSE}
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(wakefield,moments,DescTools,plyr,dplyr,tidyr,formatR,kableExtra,psych,agrmt,mnonr,lattice,modeest,multimode)
+```
+# Statistiques Descriptives
+
+## Objectifs d'apprentissage
+
+À la fin de l'étude de ce chapitre, vous devriez être en mesure de:
+
+-   pour chacun des types de données (qualitatives et quantitatives):
+
+    -   Générer des ensembles de données aléatoires
+    -   Produire des graphiques appropriés
+    -   Obtenir les indices de tendance centrale appropriés
+    -   Obtenir les indices de dispersion appropriés
+    -   Décrire la forme de la distribution, qualitativement et numériquement
+
+## Introduction
+
+Dans les sections précédentes, nous avons rencontré des distributions de probabilités permettant de résumer le 'comportement' d'une variable donnée en indiquant pour chacune des valeurs possibles, la probabilité d'occurrence.
+
+Dans un contexte de recherche, on obtient des observations pour plusieurs variables et il est d'usage, dans un premier temps suivant la collecte des données, d'étudier les principales caractéristiques de l'ensemble des données. Cet exercice peut n'impliquer qu'une variable à la fois (analyse univariée), des paires de variables (analyse bivariée), ou un certain nombre de variables (analyse multivariée). Dans cette section, nous présenterons les différents indices permettant de quantifier ces caractéristiques.
+
+Pour cette section, nous utiliserons les librairies suivantes:
+
+```{r 03-Chap3-5,message=FALSE}
+
+library(moments)
+library(psych)
+library(DescTools)
+library(wakefield)
+library(plyr)
+library(dplyr)
+library(kableExtra)
+library(agrmt)
+library(mnonr)
+library(multimode)
+library(modeest)
+```
+
+## Données qualitatives
+
+Les données qualitatives peuvent prendre l'une ou l'autre de deux formes: nominales et ordinales. Dans le premier cas, les attributs de la variable sont des catégories mutuellement exclusives entre lesquelles aucun ordre n'existe. Tous les arrangements des différents attributs (différentes catégories) sont parfaitement équivalentes. La seule opération qu'il est possible d'effectuer sur ce type de données est la comptabilisation des effectifs pour chacune des catégories.
+
+Dans le second cas, la variable possède différents attributs, comme pour les variables nominales, mais ces attributs sont ordonnés: un attribut a quelque chose de plus que le précédent, et quelque chose de moins que le suivant. Par contre, la distance qui sépare ces attributs n'est pas spécifié. La seule information dont on dispose est qu'une donnée est plus grande ou plus petite qu'une autre.
+
+Ces deux types de données sont fréquents dans la littérature scientifique. Dans les paragraphes suivants, nous examinons diverses méthodes permettant d'en fournir une description.
+
+### Données nominales: Génération
+
+Dans un contexte de recherche, les données qualitatives (échelle nominale ou ordinale) sont très fréquentes. Leur examen est plus simple que dans le cas de données quantitatives, mais l'intérêt de cet examen demeure.
+
+La génération de données nominales aléatoires est simple. Il suffit de définir les catégories de cette variable, de spécifier les probabilités d'occurrence de chacune d'elles, et d'utiliser la fonction **sample()** pour compléter le travail. Supposons un ensemble de 500 observations nominales réparties en 5 catégories nommées A, B, C, D et E, dont les probabilités d'occurrence sont respectivement .3,.1,.2,.15, et .25. La commande suivante est tout de dont nous avons besoin pour accomplir cette tâche:
+
+```{r 03-Chap3-6}
+x = sample(LETTERS[1:5], 500, replace=TRUE,prob=c(.3,.1,.2,.15,.25))
+head(x,10)
+```
+
+La librairie **wakefield** permet de générer des données tant qualitatives que quantitatives, pour une vaste variété de types de variables. Par exemple, générons des données concernant le niveau d'éducation:
+
+```{r 03-Chap3-7, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+library(wakefield)
+ed = education(20,x = c("Aucune", "Maternelle","Fondam1", "Fondam2","Lycée", "Baccaul","Maitrise", "Doctorat"),prob = c(0.013, 0.05, 0.261, 0.246, 0.165, 0.064, 0.09, 0.075),name = "Education")
+ed
+
+```
+
+Il en va de même pour le statut marital:
+
+```{r 03-Chap3-8, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+mar = marital(20,c("Marié", "Divorcé", "Veuf", "Séparé", "Célibataire"), prob = NULL,name = "Marital")
+mar
+
+```
+
+La librairie **wakefield** offre des simulateurs de données pour près de 100 variables distinctes. On en trouvera la liste en cliquant [ICI](https://rdrr.io/cran/wakefield/man/)
+
+### Données nominales: Tableau et représentation graphique
+
+Afin de résumer un ensemble de données nominales, la production d'un tableau affichant les effectifs de chaque catégorie est de mise. Sous R, on peut utiliser la fonction **table()** à cette fin:
+
+```{r 03-Chap3-9}
+tbl = table(x)
+tbl
+```
+
+Par la suite, on peut donner une forme plus efficace pour les besoins de communication::
+
+```{r 03-Chap3-10}
+tblm=as.matrix(tbl) # Conversion du tableau en matrice
+kable(tblm, booktabs=TRUE, caption="Répartition des Effectifs") %>%
+  kable_styling(full_width = FALSE)
+```
+
+La fonction **as.matrix()** définit une matrice de données correspondant au type d'argument requis par la fonction **kable()**.
+
+Un diagramme en barres est une représentation graphique appropriée dans le cas d'une variable nominale. La fonction **barplot()** permet la production d'un tel diagramme:
+
+```{r 03-Chap3-11}
+barplot(tbl,main="Répartition d'une variable nominale",xlab="Catégories",ylab="Fréquences")
+```
+
+De manière alternative, un diagramme en secteurs peut représenter ce type de données.
+
+```{r 03-Chap3-12, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+slices <- tbl
+lbls <- LETTERS[1:5]
+pie(slices, labels = paste(lbls," (",slices,")"), main="Diagramme en secteurs\n (Données brutes)")
+```
+
+Pour ce type de graphique, par contre, on a souvent avantage à utiliser les proportions ou les pourcentages occupées par chaque secteur, plutôt que les fréquences absolues:
+
+```{r 03-Chap3-13}
+slices <- tbl
+lbls <- LETTERS[1:5]
+pct <- round(slices/sum(slices)*100)
+lbls <- paste(lbls," (", pct,"%)",sep="") 
+pie(slices, labels = lbls, main="Diagramme en secteurs\n (Pourcentages)")
+```
+
+### Données nominales: Tendance centrale
+
+Dans le cas de données nominales, la seule mesure de tendance centrale qu'il est possible d'utiliser est le **mode**. Il s'agit simplement de la catégorie dont l'effectif est le plus élevé. On parlera de **catégorie modale**. L'examen du tableau de fréquence en permet la détermination. 
+
+La fonction suivante permet de déterminer le mode d'un ensemble de données nominales:
+
+```{r 03-Chap3-14}
+ModeCat = function(x) {
+   uniqx <- unique(x)
+   m = uniqx[which.max(tabulate(match(x, uniqx)))]
+   fm = sum(x==m)
+   return(c(m,fm))
+}
+```
+Cette fonction retourne un vecteur composé de deux items: la catégorie et la fréquence modale. Par exemple:
+
+```{r 03-Chap3-15}
+x=round(sample(1:10,200,replace=TRUE))
+mo = ModeCat(x)
+table(x)
+cat("Catégorie modale = ",mo[1])
+cat("Fréquence Modale = ",mo[2])
+```
+Il arrive parfois que la répartition d'un ensemble de données nominales présente plus qu'un mode. Dans un tel cas, une description des données ne peut omettre la détermination de l'ensemble des modes. Certaines fonctions nous permettent d'examiner ces situations. Par exemple, la fonction **Mode()**, de la librairie **DescTools** pourrait s'avérer utile.
+
+Supposons une variable nominale comportant 7 catégories, numérotées de 1 à 7. Supposons également que la répartition des données est unimodale. Le code R suivant permet de générer une telle variable, pour un total de N = 50 observations:
+
+```{r 03-Chap3-16}
+library(DescTools)
+x = sample(1:7,50,replace=TRUE,prob=c(1,2,3,4,3,2,1))
+tbl = table(x)
+tbl
+mode = Mode(x)
+nomode = length(mode)+1
+distmode = c("Uniforme (sans mode)","Unimodale","Bimodale","Multimodale")
+if(nomode>2){nomode = 3}else if(nomode<1){nomode=0}
+cat("Catégorie(s) Modale(s) = ",Mode(x))
+cat("La distribution est ",distmode[nomode])
+#
+# Représentation graphique
+clrs =c(rep("grey",7))
+clrs[mode] = "red"
+barplot(tbl, col = clrs)
+legend("topright", "Mode", fill = "red")
+
+```
+
+Une répartition sera bimodale, ou multimodale, si l'effectif le plus élevé apparait dans 2+ catégories. Par exemple:
+
+```{r 03-Chap3-17, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+x = c(rep(1,2),rep(2,8),rep(3,3),rep(4,4),rep(5,8),rep(6,2),rep(7,5))
+tbl = table(x)
+tbl
+mode = Mode(x)
+nomode = length(mode)+1
+distmode = c("Uniforme (sans mode)","Unimodale","Bimodale","Multimodale")
+if(nomode>2){nomode = 3}else if(nomode<1){nomode=0}
+cat("Catégorie(s) Modale(s) = ",Mode(x))
+cat("La distribution est ",distmode[nomode])
+#
+# Représentation graphique
+clrs =c(rep("grey",7))
+clrs[mode] = "red"
+barplot(tbl, col = clrs)
+legend("topright", "Mode", fill = "red")
+```
+
+La fonction **Mode()** utilisée ci-dessus permet donc de mettre en évidence la présence de plusieurs modes dans une distribution. Par contre, ne seront considérés comme modes uniquement les valeurs dont les fréquences sont identiques, comme c'était le cas dans le dernier exemple. En pratique, une distribution telle que la suivante serait très probablement considérée comme **bimodale**, même si les fréquences modales ne sont pas identiques. :
+
+```{r 03-Chap3-18, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+x = c(rep(1,2),rep(2,8),rep(3,3),rep(4,4),rep(5,10),rep(6,2),rep(7,4))
+tbl = table(x)
+tbl
+barplot(tbl)
+```
+
+La fonction **modes()**, de la librairie **agrmt** déterminera l'existence de catégories modales dont les fréquences diffèrent. L'argument **tolerance** permet d'ajuster le degré de 'ressemblance' à partir duquel on considère que les fréquences sont égales. Pour les données que nous venons de générer,supposant qu'on considère qu'une différence de 2 unités n'est pas suffisamment grande pour qu'on considère deux fréquences comme étant différentes (tolerance=2), on obtient:
+
+```{r 03-Chap3-19}
+library(agrmt)
+md = modes(tbl,tolerance=2)
+md
+cat("Fréquence(s) Modale(s) = ",tbl[md$mode])
+clrs =c(rep("grey",7))
+clrs[md$mode] = "red"
+barplot(tbl, col = clrs)
+legend("topright", "Mode", fill = "red")
+```
+
+On détecte `r length(md$mode)` modes, respectivement aux positions `r length(md$positions)`, et ces modes `r if(md$contiguous==FALSE){"ne sont pas"}else{"sont "} ` adjacents. Les fréquences modales sont respectivement `r tbl[md$positions]`.
+
+
+Finalement, la fonction **secondModes()**, toujours de la librairie **agrmt**, permet de mettre en évidence les deux principaux modes. Pour l'exemple précédent, on a:
+
+```{r 03-Chap3-20}
+tbl
+md = secondModes(tbl)
+paste("Premier mode: Catégorie ",md$positions[[1]])
+paste("Second  mode: Catégorie ",md$positions[[2]])
+clrs =c(rep("grey",7))
+clrs[md$positions[[1]]] = "red"
+clrs[md$positions[[2]]] = "red"
+barplot(tbl, col = clrs)
+legend("topright", "Mode", fill = "red")
+```
+
+#### Exercice 1
+
+1.  Chargez la librairie **wakefield**:
+
+```{r 03-Chap3-21}
+library(wakefield)
+```
+
+2.  Utilisez la fonction **employment()** pour générer le statut d'emploi de 500 personnes. Les proportions pour chaque catégories sont estimées à 50%, 15%, 10%, 15% et 10%, respectivement. La variable qui sera générée portera le nom: EMPLOI. Éditez le code R ci-dessous pour obtenir ce résultat
+
+```{r 03-Chap3-22, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+n = 500
+x = employment(n,x = c("Plein Temps", "Temps Partiel", "Sans Emploi", "Retraité", "Étudiant"), prob = c(0.6, 0.1, 0.1, 0.1, 0.1), name = "Variable")
+```
+
+3.  Obtenez un diagramme en barres pour représenter ces données. Notez que vous devez obtenir le tableau de fréquences au préalable.
+
+4.  Construisez un diagramme en secteur pour représenter les proportions des différents statuts d'emploi.
+
+5.  Déterminez le mode de cette distribution, en utilisant la fonction **Mode()** de la librairie **DescTools**. Dans ce cas, le mode est déterminé à partir des données originales (**x**). Puis, refaites le travail en utilisant la fonction **modes()** de la librairie **agrmt**. Dans ce cas, le mode est calculé à partir du tableau de fréquences.
+
+### Données **ordinales**: Génération et tendance centrale
+
+Dans le cas de données ordinales, la tendance centrale peut être évaluée à l'aide du mode, tel que défini dans la section précédente, ou en obtenant la médiane, qui est située exactement au centre de la séquence ordonnée des scores. Elle correspond à la donnée au-dessous de laquelle on retrouve 50% de la distribution. Elle coupe la distribution en deux parties égales.
+
+Sous R, la fonction **median()** retourne la médiane du vecteur correspondant à son argument. Le code R suivant permettra d'illustrer la procédure. La fonction **r_sample_ordered()** de la librairie **wakefield** permet de générer des données ordinales: un ensemble de réponses à un item de type Likert (1 = Tout-à-fait pour, ... , 7 = Tout-à-fait contre). La médiane est ensuite obtenue, après s'être assuré que les données sont perçues comme étant numériques par la fonction median()::
+
+```{r 03-Chap3-23}
+library(wakefield)
+ord = r_sample_ordered(n=50, c(1:7), prob = NULL, name = "Réponse")
+head(ord,10)
+ord = as.numeric(ord)
+cat("La médiane est égale à ",median(ord))
+```
+
+Rappelons que la médiane n'a de sens que pour les données dont le niveau de mesure est ordinal ou supérieur (d'intervalle ou de rapport).
+
+La médiane correspond au second quartile de la distribution: le score sous lequel on retrouve 50% de la distribution. Le premier et le troisième quartile sont les scores sous lesquels on retrouve 25% et 75% de la distribution, respectivement. Sous R, on peut obtenir ces valeurs à l'aide de la fonction **quantile()**. Les arguments sont d'abord la variable à étudier, et la ou les proportions se trouvant sous le ou les scores recherchés:
+
+```{r 03-Chap3-24}
+quantile(ord,c(0.25,0.5,0.75))
+```
+
+De manière alternative, la fonction **summary** retourne tant les quartiles que le minimum et le maximum d'une ensemble de données:
+
+```{r 03-Chap3-25}
+summary(ord)
+```
+
+Ces différents indices sont les ingrédients d'un diagramme en boîte:
+
+```{r 03-Chap3-26}
+boxplot(ord, horizontal=TRUE)
+```
+
+En effet, la ligne centrale représente la médiane, la bordure inférieure de la boîte représente le premier quartile, la bordure supérieur représente le troisième quartile, et les valeurs extrêmes se trouvent à chacune des extrémités du graphique.
+
+NOTE: Il est fréquent que des données nominales prennent la forme de catégories telles que "totalement d'accord", "d'accord", "sans avis", "désaccord", et "totalement d'accord". Les fonctions présentées ci-dessus ne peuvent fonctionner pour de telles données. Il faudra d'abord attribuer une valeur numérique à chacune de ces catégories: 1 à 5, pour cet exemple. Ces valeurs numériques réflètent l'ordre des différentes catégories. La fonction **mapvalues()**, qui se trouve dans la librairie **plyr** permet d'effectuer ce recodage:
+
+```{r 03-Chap3-27, eval = FALSE}
+library(plyr)
+xr = mapvalues(x,from = c("Cat1","Cat2",...,"Catk"), to = c(1:k))
+```
+
+Un exemple sera donné plus loin.
+
+#### Différentes options pour obtenir la médiane
+
+Sous R, on dispose très fréquemment de différentes alternatives pour arriver au même résultat. Le code R suivant illustre ce point en affichant quelques manières d'obtenir la médiane d'un ensemble de données (ordinales, ou quantitatives):
+
+```{r 03-Chap3-28}
+x = sort(round(rnorm(20,50,10),2))        # Données
+pos = (length(x)+1)/2                     # Position de la médiane
+md = 0.5*(x[floor(pos)]+x[ceiling(pos)])  # Calcul de la médiane
+# ... ou,,,
+if((length(x)%%2)==0){                    # n pair?
+  md = 0.5*(x[floor(pos)]+x[ceiling(pos)])# Moyenne des 2 x centraux
+  } else{
+    md = x[pos]}
+cat("Médiane =",md)
+
+# Alternative 1: fonction median()...
+md = median(x)
+cat("Médiane =",md)
+
+# Alternative 2: fonction summary()...
+summary(x)
+
+# Alternative 3: fonction quantile()...
+md = quantile(0.5)
+
+# Alternative 4: librairie (psych), fonction describe()
+library(psych)
+round(t(describe(x)),3)  # t(): transposition du tableau
+```
+
+#### Exercice 2
+
+1.  Utilisez la fonction **likert_7()** de la librairie **wakefield** afin de générer 500 données ordinales dont les attributs sont les 7 points suivants:
+
+-   "Parfaitement d'accord"
+-   "D'accord"
+-   "Un peu d'accord"
+-   "Neutre"
+-   "Un peu en désaccord"
+-   "En désaccord"
+-   "Parfaitement en désaccord"
+
+Faites en sorte que les proportions des "accords" soient plus élevées que les proportions de "désaccord" Le nom de la variable générée sera: OPINION
+
+La syntaxe générale de cette fonction est:
+
+```{r 03-Chap3-29, eval=FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+x = likert_7(n,x = c("Strongly Agree", "Agree", "Somewhat Agree", "Neutral", "Somewhat Disagree","Disagree", "Strongly Disagree"),prob = c(rep(1,7)),
+name = "Likert")
+
+```
+
+Lorsque les catégories ordonnées sont alphanumériques, il est nécessaire de les recoder pour qu'elles soient identifiées par des valeurs numériques. Par exemple, un code R tel que le suivant permettra d'effectuer cette opération. La fonction **as.numeric()** assure que le résultat sera numérique et approprié pour les opérations suivantes.
+
+```{r 03-Chap3-30, eval=FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+categor = c("Strongly Agree", "Agree", "Somewhat Agree", "Neutral", "Somewhat Disagree","Disagree", "Strongly Disagree")
+xrec = as.numeric(mapvalues(x, from = categor, to = c(1:7)))
+```
+
+2.  Obtenez des représentations graphiques de cet ensemble de données: diagramme en barres et diagramme en boîte.
+
+3.  Calculez la médiane de cet ensemble de données (essayez plusieurs méthodes)
+
+### Mesure de dispersion: données nominales
+
+Un indice de variation que l'on peut obtenir dans le cas d'une variable nominale est le **rapport de variation (RV)**. Il s'agit simplement du rapport entre le nombre de cas occupant la catégorie modale et le nombre de cas qui se trouvent hors de cette catégorie. Formellement, $$RV=1-\frac{f_{mode}}{N}$$
+
+Lorsque le mode n'est pas unique dans la distribution, RV tient compte de l'ensemble des effectifs des catégories modales:
+
+$$RV=1-\frac{n_{mode}\times f_{mode}}{N}$$
+
+En terme de probabilité, le rapport de variation correspond à la probabilité, en choisissant une observation au hasard, que cette dernière n'appartienne pas à la catégorie modale.
+
+Si la distribution est bi- ou multimodale, le calcul du rapport de variation impliquera la somme des fréquences de chacune des catégories modales.
+
+Considérons à nouveau une variable telle que celle définie plus haut. Le rapport de variation dans ce cas serait:
+
+```{r 03-Chap3-31}
+set.seed(150752)  # S'assurer de reproduire les résultats
+categ = c("Cat 1","Cat 2","Cat 3","Cat 4","Cat 5","Cat 6","Cat 7")
+x = sample(categ,50,replace=TRUE,prob=c(1,2,3,4,3,2,1))
+tbl = table(x)
+N = sum(tbl)
+tbl
+mode = Mode(x)            # Détermination du/des mode(s)
+nomode = length(mode)
+distmode = c("Uniforme (sans mode)","Unimodale","Bimodale","Multimodale")
+if(nomode>2){nomode = 3}else if(nomode<1){nomode=0}
+cat("Catégorie(s) Modale(s) = ",Mode(x))
+cat("La distribution est ",distmode[nomode+1])
+VarRat = 1-nomode*max(tbl)/N           # Rapport de Variation
+cat("Rapport de Variation = ",VarRat)
+
+```
+
+On interprète le rapport de variation de la manière suivante:
+
+1.  S'il n'y a pas de catégorie modale, alors la variation est maximale: RV = 1.0\
+2.  Plus la fréquence modale est élevée, moins il y a de dispersion entre les autres catégories. À la limite, si tous les cas se trouvaient dans la catégorie modale, il n'y aurait aucune dispersion, et RV = 0.
+
+NOTE: Cet indice n'est pas vraiment présentée dans un rapport de recherche. Il est présenté ici simplement pour illustrer que même dans le cas d'une variable nominale, les trois caractéristiques fondamentales d'un ensemble de données sont présentes!
+
+Quelques autres mesures de dispersion pour données nominales se fondent sur les écarts des fréquences non-modales par rapport à la fréquence modale. Parmi ces mesures, on retrouve:
+
+1.  Déviation Modale Moyenne (DMM):\
+    $$DMM=1-\sum_{i = 1}^{k}\frac{{f_{mode}-f_i}}{N(k-1)}$$
+
+2.  Indice de Variation Qualitative (IVQ):\
+    $$IVQ=\left(\frac{k}{k-1}\right)\left[1-\sum_{i = 1}^{k}p_i^2\right]$$
+
+3.  Indice d'Entropie Relative (IER):\
+    $$IER=-\sum_{i = 1}^{k}\frac{\left[ p_i \times log(p_i)\right]} {log(k)} $$
+
+4.  Écart-Type du Mode (ETM): $$ETM=1-\sqrt{\frac{\sum\limits_{i=1}^{k}(f_{mode}-f_i)^2}{N^2(k-1)}} $$
+
+Pour les données nominales générées ci-dessus, on obtient:
+
+```{r 03-Chap3-32}
+k = length(tbl)
+N = sum(tbl)
+xs = sort(tbl,descending=FALSE)
+DMM = 1-(sum(xs[k]-xs[1:k-1]))/(N*(k-1)) 
+cat("DMM = ",DMM)
+
+IVQ = (k/(k-1))*(1-sum((tbl/N)**2))
+cat("IQV = ",IVQ)
+
+IER = -sum((tbl/sum(tbl))*log(tbl/sum(tbl)))/log(k)
+cat("IER = ",IER)
+
+ETM = 1-sqrt(1/((k-1)*N^2)*sum((xs[k]-xs)^2))
+cat("ETM = ",ETM)
+```
+
+En sélectionnant une observation au hasard, le rapport de variation indique qu'on a 70% des chances d'obtenir une donnée ne provenant pas de la catégorie modale: une grande proportion des données se répartissent dans les autres catégories. Cette grande dispersion est confirmée par les indices fondés sur les écarts par rapport au mode, pour lesquels on obtient des valeurs se rapprochant de 1.0.
+
+Pour fins de comparaison, considérons des ensembles de données de niveaux de dispersion très élevé et très faibles.
+
+#### Dispersion élevée (distribution presqu'uniforme)
+
+Lorsqu'une distribution tend vers l'uniformité, la dispersion est élevée. Le code R suivant illustre cette situation:
+
+```{r Nomin_Disp1, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+x=c(rep("Cat 1",8),rep("Cat 2",8),rep("Cat 3",8),rep("Cat 4",9),  rep("Cat 5",8),rep("Cat 6",8),rep("Cat 7",8))
+
+tbl = table(x)
+N = sum(tbl)
+tbl
+mode = Mode(x)            
+nomode = length(mode)
+distmode = c("Unimodale","Bimodale","Multimodale")
+if(nomode>2){nomode = 3}
+cat("Catégorie(s) Modale(s) = ",Mode(x))
+cat("La distribution est ",distmode[nomode])
+VarRat = 1-length(mode)*max(tbl)/N           # Rapport de Variation
+cat("Rapport de Variation = ",VarRat)
+
+k = length(tbl)
+N = sum(tbl)
+xs = sort(tbl,descending=FALSE)
+DMM = 1-(sum(xs[k]-xs[1:k-1]))/(N*(k-1)) 
+cat("DMM = ",DMM)
+
+IVQ = (k/(k-1))*(1-sum((tbl/N)**2))
+cat("IQV = ",IVQ)
+
+IER = -sum((tbl/sum(tbl))*log(tbl/sum(tbl)))/log(k)
+cat("IER = ",IER)
+
+ETM = 1-sqrt(1/((k-1)*N^2)*sum((xs[k]-xs)^2))
+cat("ETM = ",ETM)
+
+
+```
+
+Le Rapport de Variation indique qu'en choisissant une observation au hasard, la probabilité que cette dernière n'appartienne pas à la catégorie modale est élevée: 0.842. On peut donc conclure à une dispersion élevée des observations: elles ne sont pas concentrées dans un petit nombre de catégories. Ce niveau de dispersion est confirmé par l'ensemble des mesures de dispersion fondées sur l'écart par rapport au mode.
+
+#### Dispersion 'presque' nulle (distribution presque constante)
+
+Examinons un cas où un mode existe, mais les fréquences observées pour toutes les autres catégories non-modales sont très faibles: la catégorie modale englobe la presque totalité des effectifs:
+
+```{r Nomin_Disp, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+# Unimodale, dispersion 'presque' nulle
+x=c(rep("Cat 1",1),rep("Cat 2",1),rep("Cat 3",1),rep("Cat 4",40),  rep("Cat 5",1),rep("Cat 6",1),rep("Cat 7",1))
+tbl = table(x)
+N = sum(tbl)
+tbl
+mode = Mode(x)            # Détermination du/des mode(s)
+nomode = length(mode)
+distmode = c("Unimodale","Bimodale","Multimodale")
+if(nomode>2){nomode = 3}
+cat("Catégorie(s) Modale(s) = ",Mode(x))
+cat("La distribution est ",distmode[nomode])
+VarRat = 1-length(mode)*max(tbl)/N           # Rapport de Variation
+cat("Rapport de Variation = ",VarRat)
+
+k = length(tbl)
+N = sum(tbl)
+xs = sort(tbl,descending=FALSE)
+DMM = 1-(sum(xs[k]-xs[1:k-1]))/(N*(k-1)) 
+cat("DMM = ",DMM)
+
+IVQ = (k/(k-1))*(1-sum((tbl/N)**2))
+cat("IQV = ",IVQ)
+
+IER = -sum((tbl/sum(tbl))*log(tbl/sum(tbl)))/log(k)
+cat("IER = ",IER)
+
+ETM = 1-sqrt(1/((k-1)*N^2)*sum((xs[k]-xs)^2))
+cat("ETM = ",ETM)
+```
+
+Le rapport de variation indique que la probabilité, en sélectionnant une observation au hasard, d'obtenir une donnée qui ne se trouve pas dans la catégorie modale est faible: 0.13. Les autres indices de dispersion confirment un niveau de dispersion très faible.
+
+#### Exercice 3
+
+1.  Reprenez la variable EMPLOI générée antérieurement:
+
+```{r 03-Chap3-33, eval=FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+n = 500
+x = employment(n,x = c("Plein Temps", "Temps Partiel", "Sans Emploi", "Retraité", "Étudiant"), prob = c(0.5, 0.15, 0.1, 0.15, 0.1), name = "Variable")
+```
+
+2.  Examinez les indices de dispersion pour cette variable nominale. Comment qualifieriez-vous cette distribution? (NOTE: la librairie **DescTools** est nécessaire ici!)
+
+### Mesure de dispersion: données ordinales
+
+#### Mesures fondées sur les fractiles
+
+Dans le cas de données ordinales (les catégories d'une variable sont ordonnées), l'**écart inter-quartile** (EIQ) est un indicateur du degré de dispersion. Cet indice n'est que la différence entre le troisième et le premier quartile d'une distribution. On l'obtient en utilisant la fonction **IQR()**:
+
+```{r 03-Chap3-34}
+IQR(ord)
+```
+
+ou en utilisant la fonction **quantile()**, ou la fonction **summary()**:
+
+```{r 03-Chap3-35}
+cat("EIQ = ",quantile(ord,0.75)-quantile(ord,0.25))
+st = summary(ord)
+st
+cat("EIQ = ",summary(ord)[5]-summary(ord)[2])
+  
+```
+
+Essentiellement, cet indice correspond à l'étendue des 50% centraux de la distribution.
+
+Il est également possible d'obtenir des indices de dispersion fondées sur d'autres fractiles. Par exemple on pourrait calculer l'écart inter-décile, en évaluant la distance séparant le premier décile du neuvième; ou celle séparant le 2ième décile du 8ième:
+
+```{r 03-Chap3-36}
+deciles = quantile(ord, c(0.1,0.2,0.8,0.9))
+cat("Écart Inter-Déciles (d9-d1)",deciles[4]-deciles[1])
+cat("Écart Inter-Déciles (d8-d2)",deciles[3]-deciles[2])
+```
+
+Ces options seraient aussi défendables que l'écart inter-quartile, qui demeure malgré tout plus souvent utilisé.
+
+#### Mesure du consensus (ou de dissension)
+
+Un angle sous lequel on peut examiner la dispersion d'une variable ordinale consiste à considérer le degré de consensus se traduisant par des fréquences élevées dans une catégorie particulière. On pourrait également considérer le degré de dissension se traduisant par des fréquences élevées dans les catégories opposées. Cette conceptualisation n'est pas très éloignée de ce qui a été fait dans le cas de variables nominales dans la section précédente. Mais étant donné que les attributs de la variable sont ordonnées, on a avantage à tenir compte des informations portées par ce ordre.
+
+Une variable obtenue à l'aide d'une échelle de Likert représente un exemple idéal pour illustrer la procédure. Une échelle de Likert est très souvent utilisée dans les questionnaires, dans un contexte de sondage, par exemple. Les attributs des variables qui en résultent sont de nature ordinale. Par exemple, à une question telle que : "Concernant le projet de loi XYZ, je suis..."
+
+    1 = Très défavorable
+    2 = Défavorable
+    3 = Neutre
+    4 = Favorable
+    5 = Très favorable 
+
+Si une très grande majorité des répondants optent pour les choix 4 et 5, on dira que le degré de consensus est élevé. Sinon, si les réponses se répartissent à peu près également dans toutes les catégories, on pourra conclure que le degré de consensus est faible. Si les deux extrémités de l'échelle présentent des fréquences élevées, on pourra parler de dissension. L'objectif, ici, est de quantifier le consensus.
+
+Une mesure développée à cette fin (Tastle & Wierman, 2007) est la suivante:
+
+$$Cns(x)=1+\sum\limits_{i=1}^{k}p_i log_2 \left(1-\frac{\left| f_i-\mu_x\right|}{d_x}\right)$$ $$d_x=X_{max}-X_{min}$$ $$\mu_x=\sum\limits_{i=1}^{k}p_iX_i$$
+
+Cns(x) prend une valeur comprise entre 0, lorsque les données se répartissent également dans les deux extrémités (dissension), et 1, lorsque toutes les réponses se trouvent dans une catégorie particulière (consensus). Si les données se répartissent également dans les différentes catégories, Cns(x) est approximativent égal à 0.5. Le code R suivant simule une telle variable et en calcule le degré de consensus:
+
+```{r Consensus}
+set.seed(150752)
+categ = 1:5                       # Échelle ordinale, 5 points
+x = sample(categ,80,replace=TRUE)
+tbl = table(x)
+prop = tbl/sum(tbl)             # Proportions de réponses dans chaque catégorie
+mu = sum(categ*prop)              # 'Moyenne' de la distribution
+tbl
+cns = 1+sum(prop*log2(1-(abs(categ-mu)/(max(categ)-min(categ))))) # Consensus
+cat("Consensus = ",cns)
+```
+
+La fonction **consensus()** de la librairie **agrmt** permet également ce calcul. Son argument est le vecteur des fréquences observées dans chacune des catégories ordonnées:
+
+```{r 03-Chap3-37}
+library(agrmt)
+consensus(table(x))
+```
+
+Lorsqu'il y a consensus, une grande majorité des réponses se trouvent dans une catégorie particulière, et on obtient, par exemple:
+
+```{r 03-Chap3-38}
+fx = c(1,1,20,1,1)
+consensus(fx)
+```
+
+Lorsque le consensus est 'parfait', on obtient:
+
+```{r 03-Chap3-39}
+fx = c(0,0,20,0,0)
+consensus(fx)
+```
+
+Il y a également consensus lorsque les catégories contenant une forte proportion des réponses sont adjacentes l'une à l'autre:
+
+```{r 03-Chap3-40}
+fx = c(0,0,0,20,20)
+consensus(fx)
+```
+
+Mais lorsque les réponses se concentrent dans les deux extrémités de l'échelle, on obtient:
+
+```{r 03-Chap3-41}
+fx = c(20,0,0,0,20)
+consensus(fx)
+```
+
+Le consensus est donc une mesure sensible aux polarisations. Dans ce dernier cas, on pourra parler de 'dissension'.
+
+#### Exercice 4
+
+1.  Reprenez la variable **ord** générée antérieurement:
+
+```{r 03-Chap3-42}
+library(wakefield)
+ord = r_sample_ordered(n=50, c(1:7), prob = NULL, name = "Réponse")
+ord = as.numeric(ord)
+
+```
+
+2.  Obtenez un diagramme en barres pour cette variable. Quelle est votre perception initiale concernant la dispersion de cette variable?
+
+3.  Obtenez un diagramme en boîte pour ces données. Votre appréciation de la dispersion change-t-elle?
+
+4.  Calculez l'intervalle inter-quartile et prenez-en note pour les exercices suivants.
+
+5.  Obtenez la mesure de consensus pour cette variable, et qualifiez la dispersion à partir du résultat obtenu. Prenez-en note pour les exercices suivants.
+
+6.  Générez une nouvelle variable ordinale en utilisant le même processus générateur, mais en altérant les probabilités associés à chaque attribut possible:
+
+```{r Ex_6}
+library(wakefield)
+ord = r_sample_ordered(n=50, c(1:7), prob = c(10,8,2,0,2,8,10), name = "Réponse")
+ord = as.numeric(ord)
+
+```
+
+a.  Obtenez la médiane de cette variable
+b.  Calculez l'écart inter-quartile pour ces données
+c.  Obtenez un diagramme en barres pour cette variable
+d.  Quelle est votre perception de la dispersion de cette variable?
+e.  Obtenez la mesure de consensus pour cette variable, et qualifiez la dispersion à partir du résultat obtenu.
+
+<!-- -->
+
+7.  Générez une nouvelle variable ordinale en utilisant le même processus générateur, mais en altérant les probabilités associés à chaque attribut possible:
+
+```{r Ex_7}
+library(wakefield)
+ord = r_sample_ordered(n=50, c(1:7), prob = c(1,0,1,0,4,8,10), name = "Réponse")
+ord = as.numeric(ord)
+
+```
+
+a.  Obtenez la médiane de cette variable
+b.  Calculez l'écart inter-quartile pour ces données
+c.  Obtenez un diagramme en barres pour cette variable
+d.  Obtenez un diagramme en boîte pour cette variable
+e.  Quelle est votre perception de la dispersion de cette variable?
+f.  Obtenez la mesure de consensus pour cette variable, et qualifiez la dispersion à partir du résultat obtenu.
+
+<!-- -->
+
+8.  Faites l'expérience de différentes distributions en modifiant, dans le code R utilisé ci-dessus, les probabilités des différents attributs. Le vecteur définissant **prob=** correspond aux poids accordés aux attributs 1 à 7. Les probabilités sont simplement les poids relatifs: **prob/sum(prob)**. Expérimentez différentes configurations pour apprécier le fonctionnement de l'indice de consensus. Comparez les intervalles inter-quartiles obtenus dans chaque cas, avec celui obtenu en (4). Comparez de la même manière les indices de consensus.
+
+## Variables quantitatives
+
+Dans le cas d'une variable quantitative, les attributs sont non seulement ordonnés, mais l'intervalle qui les sépare est constant et connu. Par exemple, l'année de la naissance d'un individu représente une période de temps couvrant 365 jours (oublions les années bisextiles pour l'instant!), une période fixe, connue. La distance qui sépare deux individus de 20 et 25 ans est la même que la distance qui sépare des individus de 65 et 70 ans. Par contre, deux situations se présentent: 1. La valeur nulle ('0') est un attribut comme toutes les autres valeurs que peut prendre une variable, mais n'indique pas l'absence de cet attribtu. L'An 0 dans l'histoire de l'Humanité n'indique pas le début des temps! Une température de 0 degré Celsius n'indique pas l'absence de température! On dira de cette situation qu'il n'y a pas de zéro absolu. Les variables de ce type sont dites d'**intervalle**.\
+2. La valeur nulle ('0') est absolu et indique l'absence de l'attribut. S'il n'a pas plu au cours du mois de juin au Cap-Haitien, le nombre de milli-mètres de pluie est égal à 0. Une valeur négative n'est pas possible. Si une balance indique un poids nul, c'est qu'il n'y a rien sur le plateau de cette balance. Dans ce cas, on dira d'une telle variable qu'elle est **de rapport**.
+
+Dans ces deux cas, les données peuvent être discrètes ou continues, et un très grand nombre de valeurs sont généralement possibles, en pratique ou en théorie. Dans plusieurs cas, le nombre de valeurs qu'il est possible d'observer pour ce type de variables est infini. Un calcul de probabilités tel que présenté dans les chapitres précédents ne serait donc pas applicable.
+
+### Génération de données
+
+Sous R, plusieurs fonctions permettent la génération de données aléatoires. Nous en utiliserons quelques unes pour illustrer les procédures descriptives que l'on peut appliquer sur un ensemble de données quantitatives.
+
+#### Distribution Uniforme
+
+Dans une distribution uniforme, les valeurs comprises entre un minimum et un maximum sont équiprobables: à la limite, lorsqu'un nombre infini de valeurs sont tirés d'une telle distribution, la distribution prend une forme rectangulaire.
+
+Sous R, la fonction **runif()** permet de générer des données aléatoires provenant d'une telle distribution. Un seul argument est requis: le nombre de données à générer. Pour spécifier une valeur minimale et une valeur maximale, les deux derniers arguments sont disponibles. Par défaut, les données générées sont comprises entre 0 et 1:
+
+```{r 03-Chap3-43}
+n = 5000
+linf = 10
+lsup = 20
+x = runif(n,linf,lsup)
+head(x,10)
+hist(x,main="Distribution Uniforme")
+```
+
+#### Distribution Gaussienne
+
+En Sciences, il est fréquent de rencontrer des données quantitatives dont la distribution prend une forme rappelant une cloche. Plusieurs exemples suivront dans la suite de nos présentations. Des données de ce type peuvent être générées à l'aide de la fonction **rnorm()**, qui nécessite au moins un argument: le nombre de données à générer. Si aucun autre argument n'est fourni, le centre de la distribution (sa moyenne) se trouvera aux environs de **0**, et son indice de dispersion (son écart-type) avoisinera **1.0**. Pour spécifier d'autres combinaisons de moyenne et d'écart-type il suffit de spécifier ces arguments. On obtient alors:
+
+```{r 03-Chap3-44}
+n = 5000
+moyenne = 100
+ecart.type = 15
+x = rnorm(n,moyenne,ecart.type)
+head(x,10)
+hist(x,main="Distribution Gaussienne")
+```
+
+Le résultat est une variable quantitative mesurée sur 5000 sujets. La moyenne arithmétique de cette variable se situe autour de 100, et son écart-type se trouve autour de 15.
+
+#### Distribution Exponentielle
+
+Il semble que la durée d'un appel au Service à la Clientèle de Apple est d'en moyenne, 17 minutes. On note également qu'un très grand nombre d'appels ont une durée inférieure à 17 minutes et très peu ont des durées supérieures. Ce type d'observations suit souvent la distribution exponentielle.
+
+On peut simuler ce type de données à l'aide de la fonction **rexp()**. Cette fonction nécessite un argument obligatoire, n = nombre de données à générer. Un second argument correspond à la réciproque du taux moyen de la variable générée. Par défaut, ce taux est égal à 1. Dans le cas de l'exemple ci-dessus, le taux moyen est 17, de sorte que le second argument de la fonction sera 1/17 = 0.0588. Le code R suivant produira un ensemble de 500 données suivant la distribution exponentielle, avec un taux moyen de 17:
+
+```{r 03-Chap3-45}
+x = rexp(5000,0.0588)
+head(x)
+hist(x,main="Distribution Exponentielle")
+```
+
+### Données quantitatives: Forme de la distribution
+
+La forme d'une distribution est probablement la première caractéristique que l'on saisi en examinant un diagramme résumant un ensemble de données. Dans une analyse descriptive de données, différents types de graphiques et/ou des tableaux de fréquences sont généralement efficaces pour nous permettre de qualifier cette forme.
+
+#### Tableaux de fréquences
+
+Un premier exercice qu'il est généralement utile de compléter sur un ensemble de données consiste à condenser, ou organiser les données de manière à pouvoir en déceler les principales caractéristiques. Lorsque les données sont de nature quantitatives, on doit fréquemment les regrouper dans des intervalles de classe. Cette opération implique nécessairement une perte d'information dont l'ampleur est inversement proportionnelles au nombre de classes utilisées. Plusieurs 'règles' permettent de déterminer ce nombre, pour que l'efficacité de la représentation soit maximale. Une telle règle, dûe à Freedman & Diaconis (1981) propose: $$N_{classes}=\left\lceil \frac{n^{1/3}(max-min)}{2(Q_3-Q_1)}\right\rceil $$ 
+De cette formulation, on constate que le nombre de classe doit tenir compte de l'étendue de la variable [max(x)-min(x), et écart inter-quartile], et du nombre d'observations. La fonction suivante effectue cette opération. Son unique argument est la variable que l'on veut examiner:
+
+```{r 03-Chap3-46}
+n_classes = function(x){
+  nc = ceiling((length(x)^(1/3)*(max(x)-min(x)))/(2*IQR(x)))
+  return(nc)
+}
+```
+
+La fonction **hist()** permet également l'argument **breaks="FD"** pour accomplir cette tâche.
+
+Plusieurs méthodes alternatives ont été proposées pour déterminer le nombre optimal de classes. On trouvera une discussion intéressante à ce sujet sur Wikipedia, au lien suivant: [Calcul de N_Classes](https://en.wikipedia.org/wiki/Histogram#Number_of_bins_and_width "Wikipedia").
+
+La fonction suivante permet de produire un tableau de fréquence en regroupant des observations en intervalles de classe. Par la suite, les fréquences absolues, relatives, cumulatives, et cumulatives-relatives sont reproduites. La variable contenant les données est le seul argument qui est nécessaire d'utiliser. Un second argument permet de spécifier le nombre approximatif d'intervalles composant la distributon. Par défaut, ce nombre est 20:
+
+```{r TblFreq}
+TblFreq = function(x,bins=20){	# Fonction TblFreq: x = vecteur de données; 
+				                        # bins = nombre d'intervalles
+hg = hist(x,bins)			          # Obtenir les paramètres de l'histogramme
+FreqAbs=hg$counts			          # Fréquences absolues
+FreqRel=prop.table(FreqAbs)		  # Fréquences relatives
+FreqCum = cumsum(FreqAbs)		    # Fréquences cumulatives
+FreqRelCum = cumsum(FreqRel)	  # Fréquences Relatives et Cumulatives
+lim = hg$breaks[1:(length(hg$breaks))]-.5  # Limites exactes des intervalles
+LimInf=lim[1:(length(lim)-1)]
+LimSup=lim[2:(length(lim))]
+output = data.frame(LimInf,LimSup,FreqAbs,FreqRel,FreqCum,FreqRelCum)
+return(output)
+}
+
+```
+
+Mettons à l'épreuve cette fonction sur les données que nous avons préalablement générées:
+
+```{r 03-Chap3-47, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+TF = TblFreq(x,bins=n_classes(x))
+kable(TF, booktabs=TRUE, caption="Répartition des Effectifs") %>% kable_styling(full_width = TRUE)
+```
+
+Dans un premier temps, on obtient un histogramme représentant la distribution des données. On peut ainsi visualiser le centre, la dispersion, et la forme de cette distribution.
+
+Le tableau qui fait suite à l'histogramme présente les limites inférieures et supérieures exactes des intervalles de classe. Dans le cas présent, le nombre d'intervalles n'est pas nécessairement 20, valeur qui est implicite dans la commande. Ceci est dû au fait que nous voulons des limites entières, ce qui facilite la lecture. La fonction ajuste le nombre d'intervalles de manière à ce que cette contrainte soit respectée. Pour chacun des intervalles, les quatre colonnes de droite reproduisent les fréquences absolues, les fréquences relatives, puis cumulatives et cumulatives-relatives.
+
+La fonction suivante reprend la fonction TblFreq() en y ajoutant différents types de représentation graphique, incluant un polygone de fréquence et une ogive:
+
+```{r TblFreq2, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+TblFreq2 = function(x,bins=20){	# Fonction TblFreq2: x = vecteur de données; bins = nombre d'intervalles
+hg = hist(x,bins,main="Histogramme",xlab="X")	# Obtenir les paramètres de l'histogramme
+MidPt=hg$mids
+FreqAbs=hg$counts		# Fréquences absolues
+FreqRel=prop.table(FreqAbs)	# Fréquences relatives
+FreqCum = cumsum(FreqAbs)	# Fréquences cumulatives
+FreqRelCum = cumsum(FreqRel)	# Fréquences Relatives et Cumulatives
+lim = hg$breaks[1:(length(hg$breaks))]-.5  # Limites exactes des intervalles
+LimInf=lim[1:(length(lim)-1)]
+LimSup=lim[2:(length(lim))]
+hist(x,bins,main="Histogramme et Polygone de Fréquences",xlab="X")
+par(new=TRUE)
+# Polygone de fréquences
+lines(MidPt,FreqAbs,col="red",lwd=3)
+par(new=FALSE)
+plot(MidPt,FreqAbs, type="l",main="Polygone de Fréquences",xlab="X",ylab="Fréquence",col="red",lwd=3)
+boxplot(x,main="Diagramme en Boîte",xlab="X",range=1.5,horizontal=TRUE,boxwex=0.25)
+# Distribution Cumulative
+barplot(FreqCum,main="Distribution de Fréquences Cumulatives",xlab="X",ylab="Fréquences Cumulatives",
+	space=FALSE,names.arg=MidPt)
+plot(MidPt,FreqRelCum, type="l",main="Distribution des fréquences Relatives Cumulatives",
+	xlab="X",ylab="Proportion",col="red",lwd=3)
+output = data.frame(LimInf,LimSup,FreqAbs,FreqRel,FreqCum,FreqRelCum)
+return(output)
+}
+
+```
+
+En appelant cette fonction, on obtient:
+
+```{r 03-Chap3-48}
+TF = TblFreq2(x)
+
+```
+
+#### Symétrie et Voussure
+  
+L'histogramme et le polygone de fréquences nous offrent un aperçu de la forme de la distribution. Il existe cependant des indices numériques quantifiant deux aspects particuliers relatifs à cette forme: le degré de symétrie, et le degré de voussure. On peut les obtenir à l'aide des fonctions **skewness()** et **kurtosis()** contenues dans la librairie **moments**:
+
+```{r 03-Chap3-49}
+library(moments)
+cat("Indice de symétrie = ",skewness(x))
+cat("Indice de voussure = ",kurtosis(x))
+```
+
+Un indice de symétrie nul indique que la distribution est symétrique autour de son centre. Un indice positif indique que l'extrémité droite de la distribution est allongée, alors qu'un indice négatif indique un allongement de l'extrémité gauche. La figure suivante illustre cette caractéristique: ![Symétrie](./images/skewness.png)
+
+Pour sa part, la voussure réfère à la *lourdeur* des extrémités. On distinguera une distribution dont les extrémités sont légères (*leptokurtique*), intermédiaire (*mésokurtique*) ou lourdes (*platykurtique*). La figure suivante en fait l'illustration: ![Voussure](./images/voussure.jpg)
+
+Pour une distribution Gaussienne, on obtient de la même manière:
+
+```{r 03-Chap3-50}
+x = rnorm(500,100,15)
+TF = TblFreq2(x)
+kable(TF, booktabs=TRUE, caption="Distribution de Fréquences") %>%
+kable_styling(full_width = TRUE)
+
+```
+
+Le code R suivant génére trois distributions: une symétrique, une asymétrique positive, et une asymétrique négative:
+
+```{r Demo-Sym, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+library(mnonr)
+x = unonr(10000, rep(0,3), diag(3), skewness = c(-.7,0,.7), kurtosis = c(0, 0, 0),empirical = TRUE)
+hist(x[,1],main="Distribution asymétrique négative",breaks=20)
+cat("Indice de Symétrie = ",skewness(x[,1]))
+hist(x[,2],main="Distribution symétrique",breaks=20)
+cat("Indice de Symétrie = ",skewness(x[,2]))
+hist(x[,3],main="Distribution asymétrique positive",breaks=20)
+cat("Indice de Symétrie = ",skewness(x[,3]))
+
+```
+
+Le code R suivant génère des données dont la distribution est platykurtique, mésokurtique, ou leptokurtique:
+
+```{r Demo_Voussure, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+library(mnonr)
+x = unonr(10000, rep(100,3), diag(3)*15, skewness = c(0,0,0), kurtosis = c(-0.6, 0, 3))
+hist(x[,1],main="Distribution platykurtique")
+cat("Indice de Voussure = ",kurtosis(x[,1])-3)
+hist(x[,2],main="Distribution mésokurtique")
+cat("Indice de Voussure = ",kurtosis(x[,2])-3)
+hist(x[,3],main="Distribution leptokurtique")
+cat("Indice de Voussure = ",kurtosis(x[,3])-3)
+
+```
+#### Courbe de densité
+
+Pour une variable quantitative et continue, il est souvent intéressant d'afficher la distribution des densités. Il s'agit d'une évaluation de la densité de la distribution pour différents intervalles tout au long de l'étendue de la variable. 
+
+Dans une distribution continue, la probabilité d'une valeur X particulière est **toujours** nulle. En effet, le nombre de valeurs possibles que peut prendre cette variable est infini. En conséquence la probabilité d'obtenir une valeur spécifique est égale à $1/\infty=0$ . Une autre manière d'exprimer ce fait est:
+$$P(X=a)=\int_{a}^{a}{f(x)} dx=0$$
+Par contre, si on considère un intervalle, aussi petit que nécessaire autour d'une valeur spécifique, la probabilité sera supérieure à 0:
+$$P(X=a)=\int_{a-\delta }^{a+\delta }{f(x)} dx\gt  0 $$
+C'est ce qui définit une **densité**, que l'on peut représenter graphiquement. 
+
+Sous R, la fonction **density()** permet d'obtenir les densités correspondant à chacune des valeurs d'une distribution. Considérons les données suivantes:
+
+```{r 03-Chap3-51}
+n <- 1e4
+set.seed(1)
+betas<-rbeta(n,2,3)
+x <- c(betas[1:(n/2)]*2+1,betas[(n/2+1):n]*2+2)
+hist(x,breaks="FD")
+```
+Les densités qu'il est possible de calculer dépendent d'une quantité appelée **bandwidth**. Plus cette quantité est petite, plus les détails de la distribution ressortiront; inversement, plus la bandwidth est grande, plus nous perdons de détail sur la distribution. La 'bandwidth' est un argument de la fonction **density()**. Examinons la distribution de densité des données générées ci-dessus:
+
+```{r 03-Chap3-52}
+d = density(x)
+cat("Contenu: ")
+summary(d)
+cat("Par défaut:  bw = ",d$bw)
+head(cbind(d$x,d$y),15)
+cat("Fonction de densité")
+plot(d)
+```
+En fixant bw = 0.01, on obtient:
+
+```{r 03-Chap3-53}
+d = density(x,bw=0.01)
+cat("Fonction de densité")
+plot(d)
+```
+Et en la fixant à 0.3:
+
+
+```{r 03-Chap3-54}
+d = density(x,bw=0.3)
+cat("Fonction de densité")
+plot(d)
+```
+On constate donc que la bandwidth doit être sélectionnée de manière à cacher le bruit autant que possible, tout en maintenant les principales caractéristiques de la distribution.  Ce serait un travail difficile, si nous ne disposions pas d'outils pour le faire. Et ces outils existent:
+
+  1. La valeur utilisée par défaut (**bw-nrd0**) est calculée en fonction des données elles-mêmes, et fonctionne bien généralement.
+  2. Plusieurs fonctions intégrées dans l'environnement R font l'estimation de bw:
+    
+```{r 03-Chap3-55, warning=FALSE}
+cat("bw.nrd: bw = ",bw.nrd(x))
+cat("bw.nrd0: bw = ",bw.nrd0(x))
+cat("bw.ucv: bw = ",bw.ucv(x))
+cat("bw.bcv: bw = ",bw.bcv(x))
+cat("bw.SJ: bw = ",bw.SJ(x))
+```
+En bref, pour nos besoins immédiats, on peut se fier à l'une ou l'autre de ces modes de sélection. Mais on conserve toujours la liberter de moduler le résultat en fonction des objectifs visés.
+
+### Données quantitatives: Tendance centrale
+
+Dans le cas de données quantitatives, il est possible d'obtenir non seulement le mode et la médiane, mais aussi la moyenne arithmétique de l'ensemble des données.
+
+#### Le mode
+
+Une variable quantitative peut être formée de données discrètes ou continues. Dans le cas de données discrètes, on peut obtenir le mode de la même manière que pour les données qualitatives: il s'agit simplement de la valeur dont la fréquence est la plus élevée. Dans le cas de données continues, par contre, il est fréquent que les valeurs observées soient uniques et qu'il n'y ait que peu de valeurs égales. Par exemple, examinons un ensemble de 20 données choisies suivant une distribution Gaussienne dont la moyenne est 50 et l'écart-type est 8:
+
+```{r 03-Chap3-56}
+x = rnorm(20,50,8)
+cat("Valeurs uniques:")
+unique(x)
+cat("Nombre de valeurs uniques = ",length(unique(x)))
+
+```
+
+On constate que chaque valeur est unique ce qui, selon la définition que nous avons donnée du mode, correspond à une distribution **amodale**. Cependant, on pourra considérer le mode sous l'angle de la densité: le mode sera la valeur pour laquelle on retrouve la plus grande densité, cette densité représentant la probabilité qu'un score se retrouve à l'intérieur d'un intervalle étroit autour de ce score. Par exemple, dans une distribution continue, la probabilité d'obtenir un score donné est nulle: $p(x)=1/\infty=0$. Par contre, la probabilité d'obtenir un score compris entre $x\pm0.001 \neq 0$ et on peut la déterminer,
+
+Considérons la distribution de densité d'un ensemble de 1000 données. La fonction **density()** permet de déterminer les densités requises:
+
+```{r 03-Chap3-57}
+x = rnorm(1000,50,8)
+cat("Nombre de valeurs uniques = ",length(unique(x)))
+
+hist(x,breaks="FD")
+
+dx = density(x, bw = bw.nrd0(x))
+plot(dx, frame = TRUE, col = "steelblue", 
+     main = "Diagramme de Densité", cex.lab = 1.5,
+     cex.main = 1.75, lwd = 2)
+
+```
+Alternativement, la fonction **mlv()** de la librairie **modeest**  fait le travail avec davantage de versatilité:
+
+```{r ModeEst}
+library(modeest)
+
+m = mlv(x,method="meanshift")
+cat("Mode = ",m)
+# Histogram
+hist(x, freq = FALSE,breaks="FD")
+# Mode
+abline(v = m, col = 4, lty = 2, lwd = 3)
+
+# Density
+dx <- density(x)
+lines(dx$x, dx$y, col = 2, lwd = 2)
+
+```
+
+De la distribution des densités, on trouve le mode. Il s'agit cette fois de la valeur de X pour laquelle la densité est la plus élevée. La fonction suivante nous permet d'obtenir cette valeur:
+
+```{r 03-Chap3-58}
+DensMode <- function(x){
+  d<-density(x)
+  m = d$x[which(d$y==max(d$y)[1])]
+  return(m)
+}
+
+```
+Cette fonction requiert la librairie **ggplot2**. Examinons son bon fonctionnement pour déterminer le mode des données générées ci-dessus:
+
+```{r 03-Chap3-59}
+m = DensMode(x)
+cat("Mode = ",m)
+# Représentation graphique
+
+require(ggplot2)
+ggplot(data=data.frame(x), aes(x=x)) + geom_density(fill="lightblue",color = "midnightblue") +
+geom_vline(xintercept=m,linetype="dashed",color="red",size=1)
+
+```
+
+La librairie **multimode** est particulièrement intéressante pour l'examen du ou des modes dans une distribution continue. 
+
+Considérons une distribution bi- ou multimodale:
+
+```{r Multimode}
+library(multimode)
+
+set.seed(23474567)
+n <- 1000
+bin <- rbinom(n, 1, 0.6)
+y2 <- rnorm(n, mean = 80, sd = 11) * bin + rnorm(n, mean = 40, sd = 8) * (1 - bin)
+hist(y2,breaks=30)
+
+modes <- locmodes(y2, mod0 = 2,lowsup=min(y2),uppsup=max(y2))
+modes
+
+abline(v = modes$locations[c(1,3)], col = 2, lwd = 2)
+abline(v = modes$locations[2], col = "green", lwd = 2)
+
+plot(modes)
+
+```
+De la fonction de densité, on estime l'existence de deux modes dont les valeurs sont respectivement 40.28 et 79.99 et sont associés à des densités similaires (0.018 et 0.021). L'antimode se trouve à x = 57.31, avec une densité très faible (0.005).  L'histogramme et la courbe de densité illustrent la situation, Les deux modes sont affichés, de même que l'**antimode**, la valeur dont la densité est la plus faible, entre deux modes, lorsque la distribution est bi- ou multimodale.
+
+#### La médiane
+
+Pour la médiane et les quartiles, on peut utiliser à nouveau les fonctions **quantile()** et **summary()** comme on l'a fait pour des données ordinales. Par exemple,
+
+```{r Median}
+x = runif(500,1,50)
+cat("La médiane est ",median(x))
+cat("Les quartiles sont :\n ",quantile(x,c(0.25,0.5,0.75)))
+summary(x)
+
+```
+#### La moyenne
+  
+On peut obtenir la moyenne à l'aide de la fonction **mean()**:
+
+```{r 03-Chap3-60}
+cat("La moyenne est égale à ",mean(x))
+```
+
+On se souviendra que la moyenne est le centre de gravité d'un ensemble de scores. De ce fait, la somme des écarts par rapport à sa valeur sera toujours nulle: $$\sum_{i = 1}^{n}(X - \overline{X})=0$$ Pour le vérifier:
+
+```{r 03-Chap3-61}
+cat("La somme des écarts à la moyenne = ", sum(x-mean(x)))
+```
+
+### Données quantitatives: Dispersion
+
+L'écart inter-quartile permettant de quantifier la dispersion d'une variable ordinale peut s'obtenir de la même manière pour une variable quantitative. Par contre, on préférera un indice plus efficace dans le cas de variables de ce niveau (mesure d'intervalle ou de rapport). Il s'agit ici d'utiliser toute l'information disponible pour obtenir un indice fiable de l'éparpillement des données autour du centre de la distribution.
+
+On peut facilement imaginer qu'un tel indice doit se fonder sur les distances qui séparent chaque donnée du centre de la distribution. Puisque la médiane et la moyenne représentent ce centre (quoique d'une manière conceptuellement distincte!), notre attention se portera soit sur $(X - Md)$, soit sur $(X - \bar X)$. Mais puisque $\sum (X - \bar X)=0$, il faudra trouver une manière de ne considérer que les distances **absolues** séparant les données du centre. Les candidats qui satisfont ce critère sont:\
+1. La déviation médiane:
+
+$$\sum_{i=1}^{n}\frac{\left | X_{i}-Md   \right|}{n} $$ Cette mesure est simplement la moyenne arithmétique des écarts par rapport à la médiane.
+
+2.  La déviation moyenne: $$\sum_{i=1}^{n}\frac{\left | X_{i}-\bar{X} \right|}{n} $$ Cette mesure est très similaire à la précédente: il s'agit de la moyenne arithmétique des écarts par rapport à la moyenne.
+
+3.  La variance: $$s^{2} = \frac{\sum_{i=1}^{n}\left(X_{i} - \bar{X}\right)^{2}}{n-1}$$ Cette mesure est analogue à la déviation moyenne, sauf que les écarts absolus par rapport à la moyenne sont remplacés par le carré de ces quantités. On note aussi qu'au niveau du dénominateur, une correction est apportée $(n-1)$. Ce point particulier sera explicité plus tard. On obtient de cette manière une moyenne arithmétique des carrés des écarts par rapport à la moyenne.
+
+4.  L'écart-type: $$s = \sqrt{\frac{\sum\limits_{i=1}^{n} \left(X_{i} - \bar{X}\right)^{2}} {n-1}}$$ Cette mesure de dispersion, omniprésente dans les méthodes d'analyse de données quantitatives n'est que la racine carrée de la variance. Donc la racine carrée de la moyenne des carrés des écarts par rapport à la moyenne.
+
+Ces différents indices sont aisément obtenus à l'aide des fonctions **mad()**, **var()**, et **sd()**:
+
+```{r Quant_Dispersion}
+cat("La déviation moyenne = ",mad(x,center=mean(x)))
+cat("La déviation médiane = ",mad(x,center=median(x)))
+cat("La variance          = ",var(x))
+cat("L'écart-type         = ",sd(x))
+```
+
+5.  Le Coefficient de Variation: ce coefficient est une mesure de dispersion **relative**. Il est défini par: $$ CV = \frac {\sigma}{\bar X}\times 100 $$
+
+6.  Le coefficient de variation robuste: Ce coefficient est analogue au coefficient de variabion, sauf qu'il n'est pas affecté par les données extrêmes: il utilise la médiane et la déviation médiane absolue: $$CVR =\frac {Déviation Médiane}{Médiane}\times 100 $$ \#\# Exercice 5:
+
+7.  Générez un ensemble de 500 observations Gaussiennes avec une moyenne avoisinnant 50 et un écart-type avoisinnant 10.
+
+8.  Obtenez les indices de tendance centrale: moyenne et médiane
+
+9.  Obtenez les indices de dispersion
+
+10. Obtenez les indices de symétrie et de voussure
+
+11. Obtenez la distribution des fréquences et les représentations graphiques habituelles
+
+12. Sous quel score trouve-t'on 67% de la distribution?
+
+13. Quelle est la proportion des scores de la distribution sous X = 40?
+
+14. Quelle est la probabilité, en choisissant une observation au hasard, d'obtenir un score inférieur à 35, ou supérieur à 65?
+
+15. Déterminez les valeurs limitant les 95% centraux de la distribution.
+
+16. Quelle est la proportion des scores compris entre 38 et 57?
+
+## Conclusion
+
+Dans cette section, nous avons appris à générer des données qualitatives (nominales et ordinales) et quantitatives (d'intervalle et de rapport). Les distributions des scores générés ont été décrites à l'aide d'indices de tendance centrale, de dispersion et de symétrie et de voussure (forme de la distribution). L'ensemble de ces acquis sont à la base de tout ce qui suit.
+
+## Références
+
+1.  KVALSETH, TARALD O., Measuring variation for nominal data, Bulletin of the Psychonomic Society, 1988. 26 (5), 433-436\
+2.  REYNOLDS, H. T. The analysis of cross-classifications. New York: Free Press, 1977
+3.  TASTLE, William J. & Wierman, Mark J., Consensus and dissention: A measure of ordinal dispersion, International Journal of Approximate Reasoning 45 (2007) 531--545
+
+\newpage
+
+## Solutions aux exercices
+
+### Exercice 1
+
+1.  Chargez la librairie **wakefield**:
+
+```{r 03-Chap3-62}
+library(wakefield)
+```
+
+2.  Utilisez la fonction **employment()** pour générer le statut d'emploi de 500 personnes. Les proportions pour chaque catégories sont estimées à 50%, 15%, 10%, 15% et 10%, respectivement. La variable qui sera générée portera le nom: EMPLOI. Éditez le code R ci-dessous pour obtenir ce résultat
+
+```{r 03-Chap3-63, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+n = 500
+empl = employment(500,x = c("Plein Temps", "Temps Partiel", "Sans Emploi", "Retraité", "Étudiant"), prob = c(0.6, 0.15, 0.1, 0.15, 0.1), name = "Emploi")
+```
+
+3.  Obtenez un diagramme en barres pour représenter ces données. Notez que vous devez obtenir le tableau de fréquences au préalable.
+
+```{r 03-Chap3-64}
+tbl = table(empl)
+barplot(tbl)
+```
+
+4.  Construisez un diagramme en secteur pour représenter les proportions des différents statuts d'emploi.
+
+```{r 03-Chap3-65}
+slices <- tbl
+lbls <- c("Plein Temps", "Temps Partiel", "Sans Emploi", "Retraité", "Étudiant")
+pct <- round(slices/sum(slices)*100)
+lbls <- paste(lbls," (", pct)
+lbls <- paste(lbls,"%)",sep="")
+pie(slices, labels = lbls, main="Diagramme en secteurs\n (Pourcentages)")
+```
+
+5.  Déterminez le mode de cette distribution, en utilisant la fonction **Mode()**\* de la librairie **DescTools**. Dans ce cas, le mode est déterminé à partir des données originales (**x**). Puis, refaites le travail en utilisant la fonction **modes()** de la librairie **agrmt**. Dans ce cas, le mode est calculé à partir du tableau de fréquences.
+
+```{r 03-Chap3-66}
+library(DescTools)
+library(agrmt)
+Mode(empl)
+tbl = table(empl)
+modes(tbl)
+```
+
+### Exercice 2
+
+1.  Utilisez la fonction **likert_7()** de la librairie **wakefield** afin de générer 500 données ordinales dont les attributs sont les 7 points suivants:
+
+-   "Parfaitement d'accord"
+-   "D'accord"
+-   "Un peu d'accord"
+-   "Neutre"
+-   "Un peu en désaccord"
+-   "En désaccord"
+-   "Parfaitement en désaccord"
+
+Faites en sorte que les proportions des "accords" soient plus élevées que les proportions de "désaccord". Le nom de la variable générée sera: OPINION
+
+```{r 03-Chap3-67,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+library(wakefield)
+n = 500
+x = likert_7(n,x = c("Parfaitement d'accord", "D'accord", "Un peu d'accord", "Neutre", "Un peu en désaccord","En désaccord", "Parfaitement en désaccord"),prob = c(6,8,3,2,3,3,2),name = "Opinion")
+```
+
+2.  Obtenez des représentations graphiques de cet ensemble de données: diagramme en barres et diagramme en boîte.
+
+```{r 03-Chap3-68}
+tbl = table(x)
+barplot(tbl)
+boxplot(x)
+```
+
+3.  Calculez la médiane de cet ensemble de données (essayez plusieurs méthodes)
+
+```{r 03-Chap3-69, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+library(plyr)
+categor = c("Parfaitement d'accord", "D'accord", "Un peu d'accord", "Neutre", "Un peu en désaccord","En désaccord", "Parfaitement en désaccord")
+xrec = as.numeric(mapvalues(x, from = categor, to = c(1:7)))
+
+median(xrec)
+summary(xrec)
+quantile(xrec,0.5)
+
+library(psych)
+t(describe(xrec))
+
+```
+
+### Exercice 3
+
+1.  Reprenez la variable EMPLOI générée antérieurement:
+
+```{r 03-Chap3-70, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+n = 500
+x = employment(n,x = c("Plein Temps", "Temps Partiel", "Sans Emploi", "Retraité", "Étudiant"), prob = c(0.5, 0.15, 0.1, 0.15, 0.1), name = "Variable")
+```
+
+2.  Examinez les indices de dispersion pour cette variable nominale. Comment qualifieriez-vous cette distribution? (NOTE: la librairie **DescTools** est nécessaire ici!)
+
+```{r 03-Chap3-71}
+library(DescTools)
+
+tbl = table(x)
+N = sum(tbl)
+tbl
+mode = Mode(x)            # Détermination du/des mode(s)
+nomode = length(mode)
+distmode = c("Unimodale","Bimodale","Multimodale")
+if(nomode>2){nomode = 3}
+cat("Catégorie(s) Modale(s) = ",Mode(x))
+cat("La distribution est ",distmode[nomode])
+VarRat = 1-length(mode)*max(tbl)/N           # Rapport de Variation
+cat("Rapport de Variation = ",VarRat)
+
+k = length(tbl)
+N = sum(tbl)
+xs = sort(tbl,descending=FALSE)
+DMM = 1-(sum(xs[k]-xs[1:k-1]))/(N*(k-1)) 
+cat("DMM = ",DMM)
+
+IVQ = (k/(k-1))*(1-sum((tbl/N)**2))
+cat("IQV = ",IVQ)
+
+IER = -sum((tbl/sum(tbl))*log(tbl/sum(tbl)))/log(k)
+cat("IER = ",IER)
+
+ETM = 1-sqrt(1/((k-1)*N^2)*sum((xs[k]-xs)^2))
+cat("ETM = ",ETM)
+```
+
+### Exercice 4
+
+1.  Reprenez la variable **ord** générée antérieurement:
+
+```{r 03-Chap3-72}
+library(wakefield)
+ord = r_sample_ordered(n=50, c(1:7), prob = NULL, name = "Réponse")
+head(ord,10)
+ord = as.numeric(ord)
+cat("La médiane est égale à ",median(ord))
+```
+
+2.  Obtenez un diagramme en barres pour cette variable. Quelle est votre perception initiale concernant la dispersion de cette variable?
+
+```{r 03-Chap3-73}
+barplot(table(ord))
+```
+
+3.  Obtenez un diagramme en boîte pour ces données. Votre appréciation de la dispersion change-t-elle?
+
+```{r 03-Chap3-74}
+boxplot(ord)
+```
+
+4.  Calculez l'intervalle inter-quartile et prenez-en note pour les exercices suivants.
+
+```{r 03-Chap3-75}
+IQR(ord)
+```
+
+5.  Obtenez la mesure de consensus pour cette variable, et qualifiez la dispersion à partir du résultat obtenu. Prenez-en note pour les exercices suivants.
+
+```{r 03-Chap3-76}
+library(agrmt)
+consensus(table(ord))
+```
+
+6.  Générez une nouvelle variable ordinale en utilisant le même processus générateur, mais en altérant les probabilités associés à chaque attribut possible:
+
+```{r 03-Chap3-77}
+library(wakefield)
+ord = r_sample_ordered(n=50, c(1:7), prob = c(10,8,2,0,2,8,10), name = "Réponse")
+ord = as.numeric(ord)
+
+```
+
+a.  Obtenez la médiane de cette variable
+
+```{r 03-Chap3-78}
+cat("Médiane = ",median(ord))
+```
+
+b.  Calculez l'écart inter-quartile pour ces données
+
+```{r 03-Chap3-79}
+cat("EIQ = ",IQR(ord))
+```
+
+c.  Obtenez un diagramme en barres pour cette variable
+
+```{r 03-Chap3-80}
+barplot(table(ord))
+```
+
+d.  Quelle est votre perception de la dispersion de cette variable?
+
+e.  Obtenez la mesure de consensus pour cette variable, et qualifiez la dispersion à partir du résultat obtenu.
+
+```{r 03-Chap3-81}
+library(agrmt)
+consensus(table(ord))
+```
+
+7.  Générez une nouvelle variable ordinale en utilisant le même processus générateur, mais en altérant les probabilités associés à chaque attribut possible:
+
+```{r 03-Chap3-82}
+library(wakefield)
+ord = r_sample_ordered(n=50, c(1:7), prob = c(1,0,1,0,4,8,10), name = "Réponse")
+ord = as.numeric(ord)
+
+```
+
+a.  Obtenez la médiane de cette variable
+
+```{r 03-Chap3-83}
+cat("Médiane de ord = ",median(ord))
+```
+
+b.  Calculez l'écart inter-quartile pour ces données
+
+```{r 03-Chap3-84}
+cat("EIQ de ord = ",IQR(ord))
+```
+
+c.  Obtenez un diagramme en barres pour cette variable
+
+```{r 03-Chap3-85}
+barplot(table(ord))
+```
+
+d.  Obtenez un diagramme en boîte pour cette variable
+
+```{r 03-Chap3-86}
+boxplot(ord)
+```
+
+e.  Quelle est votre perception de la dispersion de cette variable?
+
+f.  Obtenez la mesure de consensus pour cette variable, et qualifiez la dispersion à partir du résultat obtenu.
+
+```{r 03-Chap3-87}
+library(agrmt)
+consensus(table(ord))
+```
+
+8.  Faites l'expérience de différentes distributions en modifiant, dans le code R utilisé ci-dessus, les probabilités des différents attributs. Le vecteur définissant **prob=** correspond aux poids accordés aux attributs 1 à 7. Les probabilités sont simplement les poids relatifs: **prob/sum(prob)**. Expérimentez différentes configurations pour apprécier le fonctionnement de l'indice de consensus. Comparez les intervalles inter-quartiles obtenus dans chaque cas, avec celui obtenu en (4). Comparez de la même manière les indices de consensus.
+
+### Exercice 5:
+
+1.  **Générez un ensemble de 500 observations Gaussiennes avec une moyenne avoisinnant 50 et un écart-type avoisinnant 10.**
+
+```{r 03-Chap3-88}
+x = rnorm(500,50,10)
+head(x,10)
+```
+
+2.  **Obtenez les indices de tendance centrale: moyenne et médiane**
+
+```{r 03-Chap3-89}
+cat("Moyenne = ",mean(x))
+cat("Médiane = ",median(x))
+```
+
+3.  **Obtenez les indices de dispersion**
+
+```{r 03-Chap3-90}
+cat("Écart Inter-Quartile = ",IQR(x))
+cat("Déviation Moyenne    = ",mad(x,center=median(x)))
+cat("Déviation moyenne    = ",mad(x,center=mean(x)))
+cat("Variance             = ",var(x))
+cat("Écart-Type           = ",sd(x))
+```
+
+4.  **Obtenez les indices de symétrie et de voussure**
+
+```{r 03-Chap3-91}
+library(moments)
+cat("Indice de symétrie  = ",skewness(x))
+cat("Indice de voussure  = ",kurtosis(x))
+```
+
+5.  **Obtenez la distribution des fréquences et les représentations graphiques habituelles**
+
+```{r 03-Chap3-92}
+TF = TblFreq2(x)
+kable(TF, booktabs=TRUE, caption="Distribution de Fréquences") %>%
+kable_styling(full_width = TRUE)
+```
+
+6.  **Sous quel score trouve-t'on 67% de la distribution?**
+
+```{r 03-Chap3-93}
+cat("P67 = ",x[0.67*length(x)])
+```
+
+7.  **Quelle est la proportion des scores de la distribution sous X = 40?**
+
+```{r 03-Chap3-94}
+cat("RC40 = ",sum(x<=40)/length(x))
+```
+
+8.  **Quelle est la probabilité, en choisissant une observation au hasard, d'obtenir un score inférieur à 35, ou supérieur à 65?**
+
+```{r 03-Chap3-95}
+cat("P[(x<35) ou (x>57)] = ",sum((x<35)|(x>70))/length(x))
+```
+
+9.  **Déterminez les valeurs limitant les 95% centraux de la distribution.**
+
+```{r 03-Chap3-96}
+cat("P[",quantile(x,0.025),"< x < ",quantile(x,0.975),"] = 0.95")
+```
+
+10. **Quelle est la proportion des scores compris entre 38 et 57?**
+
+```{r 03-Chap3-97}
+cat("P[38 < x < 57] = ",sum((x>=38)&(x<=57))/length(x))
+```

@@ -1,0 +1,3904 @@
+---
+title: "MAT104 - Cours 2: Introduction aux Probabilités"
+author: "Daniel Coulombe"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    number_sections: true
+    highlight: pygments
+    theme: spacelab
+    fig_width: 5.6
+    fig_height: 4
+---
+
+```{r 02-Chap2-1, include = FALSE}
+knit_print.data.frame = function(x, ...) {
+  res = paste(c("", "", knitr::kable(x)), collapse = "\n")
+  knitr::asis_output(res)
+}
+
+registerS3method(
+  "knit_print", "data.frame", knit_print.data.frame,
+  envir = asNamespace("knitr")
+)
+```
+
+```{r 02-Chap2-2, include = FALSE}
+knitr::opts_chunk$set(out.height = "\\textheight",  out.width = "\\textwidth")
+library(formatR)
+```
+```{r echo=FALSE}
+#' Format cells of a data frame
+#' From https://stackoverflow.com/questions/28166168/how-to-change-fontface-bold-italics-for-a-cell-in-a-kable-table-in-rmarkdown
+#'@param df data frame
+#'@param rows  row(s) of the cell(s) to format
+#'@param cols  column(s) of the cell(s) to format
+#'@param value format to apply: one of "italics", "bold", "strikethrough"
+#'@export
+#'
+format_cells <- function(df, rows ,cols, value = c("italics", "bold", "strikethrough")){
+
+  # select the correct markup
+  # one * for italics, two ** for bold
+  map <- setNames(c("*", "**", "~~"), c("italics", "bold", "strikethrough"))
+  markup <- map[value]
+
+  for (r in rows){
+    for(c in cols){
+
+      # Make sure values are not factors
+      df[[c]] <- as.character( df[[c]])
+
+      # Update formatting
+      df[r, c] <- paste0(markup, df[r, c], markup)
+    }
+  }
+
+  return(df)
+}
+
+```
+
+# Introductions aux Probabilités
+
+## Objectifs d'apprentissage
+
+À la fin de cette section, vous devriez être en mesure de:
+
+1.  Définir la notion de probabilité et faire la distinction entre
+    probabilité théorique et probabilité fréquentiste
+2.  Spécifier l'espace échantillonnal et sa taille
+3.  Spécifier un événement et la fréquence de son occurrence
+4.  Définir une permutation et en calculer le nombre
+5.  Définir une combinaison et en calculer le nombre
+6.  Utiliser correctement la règle d'addition de probabilités
+7.  Utiliser correctement la règle de multiplication de probabilités
+8.  Utiliser un tableau de contingence pour calculer les probabilités
+    marginales, jointes et conditionnelles
+9.  Faire la lecture d'un arbre de probabilités
+10. Construire un tableau présentant une distribution de fréquences
+11. Simuler différentes expériences aléatoires:
+
+-   Lancer d'une pièce de monnaie
+-   Lancer de dés (1 et 2)
+-   Sélection au hasard d'objets dans une urne
+-   Sélection de cartes dans un jeu standard
+
+## Probabilités: Définitions de base
+
+Dans cette section,nous abordons les notions pertinentes au calcul de
+probabilités dans diverses situations. Une compréhension ferme de ces
+notions est essentielle à l'étude des méthodes d'analyse inférentielles.
+
+Pour cette section, nous utiliserons les librairie suivantes:
+
+```{r 02-Chap2-3,message=FALSE,echo=FALSE}
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(randtests,ggvenn,VennDiagram,arrangements,dplyr,tidyr,formatR,kableExtra,isteahMAT104,openintro,Rfast,extraDistr)
+```
+
+```{r 02-Chap2-4,message=FALSE}
+library(randtests)
+library(VennDiagram)
+library(ggvenn)
+library(arrangements)
+library(dplyr)
+library(tidyr)
+library(formatR)
+library(kableExtra)
+library(isteahMAT104)
+library(openintro)
+library(Rfast)
+library(extraDistr)
+```
+
+### Expérience aléatoire**,** Événement**, et** Espace Échantillonnal
+
+Afin d'illustrer les notions présentées dans les paragraphes qui
+suivent, considérons des situations (ou épreuves) très simples: le
+lancer d'une ou de plusieurs pièces de monnaie, de lancers de dés, ou
+tirer quelques cartes d'un jeu de cartes standard.
+
+Le lancer d'une pièce de monnaie est une expérience aléatoire qui peut
+se traduire par l'un ou l'autre de deux résultats ou **événements**
+possibles: la pièce tombe du côté **PILE**, ou elle tombe du côté
+**FACE**. L'ensemble des événements possibles lors d'une expérience
+aléatoire constitue l'espace échantillonnal. Formellement:
+
+-   **Expérience aléatoire**: épreuve donnant lieu à un événement dont
+    la nature est le produit du hasard. On réfère ici à toute action se
+    traduisant par un résutat ou événement: lancer d'une pièce, d'un dé,
+    administrer un test, etc. De fait, toute action conduisant à des
+    observations qui sont le fruit du hasard peut être considérée comme
+    étant une expérience aléatoire.
+
+-   **Espace échantillonnal**: ensemble exhaustif des résultats
+    possibles d'une expérience aléatoire. Dans le cas du lancer d'une
+    pièce de monnaie, on représentera l'espace échantillonnal par :
+    **S={Pile, Face}**. Dans le cas du lancer d'un dé, on aurait:
+    **S={1, 2, 3, 4, 5, 6}**. Ces espaces échantillonnaux se composent
+    d'événements discrets: on peut dénombrer les éléments qu'ils
+    contiennent. Dans d'autres cas, l'espace échantillonnal est composé
+    d'événements continus dont le nombre est infini. Par exemple: **S =
+    {**$-\infty$,...,+$\infty$}
+
+-   **Événement**: le résultat d'une expérience aléatoire. Il s'agit
+    d'un élément particulier faisant partie de l'espace échantillonnal,
+    donc un résultat parmi l'ensemble des résultats possibles. Étant le
+    fruit du hasard, on ne peut pas déterminer à l'avance l'événement
+    qui se produira. Par contre, on peut calculer la probabilité qu'un
+    événement particulier se produise: **P(E) = ?**
+
+    -   **Événements indépendants**: Deux événements sont dits
+        **indépendants** si l'occurrence de l'un n'affecte en rien la
+        probabilité d'occurrence de l'autre. Par exemple, en lançant une
+        pièce de monnaie deux fois, la probabilité d'obtenir FACE au
+        premier lancer n'a aucun impact sur la probabilité qu'au second
+        lancer, on obtienne le même résultat. De même, en lançant deux
+        dés, la probabilité de voir apparaître un '6' sur le premier dé
+        n'a aucun impact sur ce qu'on observera sur le second. De la
+        même façon, les résultats d'une loterie sont indépendants d'un
+        tirage à l'autre: ce n'est pas parce que vous n'avez jamais
+        gagné quoi que ce soit à la loterie nationale, après y avoir
+        participé chaque semaine pendant 20 ans que vos chances de
+        gagner 'bientôt' sont plus grandes! Dans la vie courante, de
+        nombreuses superstitions sont basées sur le fait de nier
+        l'indépendance entre des événements réellement indépendants.
+
+    -   **Événements dépendants**: Deux événements sont dits
+        **dépendants** si l'occurrence de l'un affecte la probabilité
+        d'occurrence de l'autre. Par exemple, le fait de tirer (sans
+        remise) le Roi de Cœur d'un jeu de carte standard réduit la
+        probabilité d'obtenir un autre Roi du même jeu de carte
+        lorsqu'on tire une seconde carte. Lors du tirage de la première
+        carte, il y avait 4 Rois dans un jeu de 52 cartes; mais lors du
+        second tirage, si un Roi a été obtenu au premier tirage, il n'en
+        reste plus que 3 dans le jeu qui ne contient plus que 51 cartes.
+        Par contre, si la première carte (Roi de Coeur) est replacée
+        dans le jeu avant de tirer la seconde carte, alors les
+        événements 'obtenir un roi pour première carte' et 'obtenir un
+        roi pour seconde carte' sont indépendants: dans cette expérience
+        aléatoire, les mots-clés sont **sans remise**, et **avec
+        remise**: une expérience aléatoire sans remise se traduit par
+        des événements dépendants, alors qu'une expérience aléatoire
+        avec remise résulte en événements indépendants.
+
+    -   **Événements mutuellement exclusifs**: Deux événements sont dits
+        **mutuellement exclusifs** s'ils ne peuvent survenir en même
+        temps. Par exemple, en tirant une carte d'un jeu standard, les
+        événements 'obtenir un Coeur' et 'obtenir une carte noire' sont
+        mutuellement exclusifs, car une carte ne peut pas être 'noire'
+        et 'Coeur' à la fois.
+
+    -   **Événements non mutuellement exclusifs**: Lorsque deux
+        événements ne sont pas mutuellement exclusifs, il peuvent
+        survenir simultanément. Par exemple, un événement défini comme
+        'un étudiant suit un cours de psychologie' et un second
+        événement comme 'un étudiant suit un cours de mathématiques'
+        sont deux événements qui peuvent survenir en même temps: le
+        programme d'étude peut très bien inclure ces deux cours! Il
+        s'agit donc d'événements non mutuellement exclusifs.
+
+-   **Variable aléatoire**: Ce terme reviendra continuellement dans les
+    discussions à venir. Une variable aléatoire est une variable dont la
+    valeur est le résultat d'une expérience aléatoire, et en
+    conséquence, le fruit du hasard. Elle est donc définie sur
+    l'ensemble des résultats possibles d'une expérience aléatoire.
+    Certaines variables aléatoires sont discrètes, d'autre continues.
+    Toutes les variables utilisées dans le cadre d'une recherche
+    scientifique sont des variables aléatoires! En calculant la
+    probabilité de chaque valeur possible d'une variable aléatoire, on
+    obtient une distribution de probabilités. Selon la nature de
+    l'expérience aléatoire et des événements qu'elle génère, on obtient
+    différentes distributions de probabilités.
+
+## Éléments de calcul de probabilités
+
+En supposant une pièce de monnaie qui est bien équilibrée (non truquée),
+on a une chance sur 2 que l'événement observé lors d'un lancer de cette
+pièce soit PILE, et une chance sur 2 qu'il soit FACE. On peut donc
+exprimer cette situation par: $$P(PILE) = 1/2$$ $$P(FACE)=1/2$$
+
+Ces expressions nous informent que la **probabilité** d'obtenir FACE en
+lançant une pièce de monnaie est égale à 0.5; et que la probabilité
+d'obtenir PILE en lançant cette pièce est aussi égale à 0.5. Cette
+définition est conforme à l'idée qu'une probabilité est le rapport entre
+le **nombre d'occurrence d'un événement donné (nE)** et le **nombre
+total d'événements possibles (nS)**: $$P(E)=nE/nS$$ Ce qui est implicite
+dans cette définition, c'est que pour pouvoir déterminer la probabilité
+d'un événement, il faut être capable de compter le nombre de 'succès'
+(succès = l'événement se produit), de même que le nombre d'événements
+possibles (l'ensemble des événements qui pourraient se produire lors
+d'une expérience aléatoire). Ces deux nombres sont toujours au coeur
+d'un exercice de calcul de probabilités, quelle que soit sa complexité.
+Dans la section suivante, nous présentons les éléments pertinents à
+l'obtention de ces nombres.
+
+### Calcul de **nE** et de **nS**
+
+Pour pouvoir calculer une probabilité, il est nécessaire de
+comptabiliser les **nE** 'succès' et les **nS** événements possibles. Souvent,
+il suffit d'un peu de réflexion pour y parvenir, ou d'un peu d'aide
+informatique!.
+
+On sait qu'en lançant une pièce de monnaie, deux résultats sont
+possibles: PILE, ou FACE. Donc dans ce cas, l'espace échantillonnal est
+**S = {PILE, FACE}**, **nS = 2**, et le résultat d'un lancer étant soit
+PILE, soit FACE, **nE = 1** dans chacun des cas.
+
+Si deux pièces de monnaie sont lancées, l'espace échantillonnal
+s'agrandit: **S = {PP,PF,FP,FF}: nS = 4** Dans ce cas, l'événement peut
+prendre différentes formes: obtenir 2 FACEs, ou 2 PILEs, ou une
+combinaison PILE/FACE ou FACE/PILE. Si l'événement étudié est PILE/PILE,
+alors nE = 1. Si on recherche une combinaison des deux résultats
+possibles, alors nE = 2.
+
+Quel serait l'espace échantillonnal lorsqu'on tire une carte d'un jeu
+standard? Un jeu standard contient 52 cartes, et cet ensemble forme
+l'espace échantillonnal: pour chacun de 'Pique', 'Coeur', 'Carreau',
+'Treffle', on a l'As, 2, 3, 4, 5, 6, 7, 8, 9, 10, Valet, Dame, Roi. Donc
+13 cartes par série, pour un total de nS = 52. Si ce que l'on recherche
+en tirant une carte est la couleur 'Rouge' (Coeur et Carreau), alors nE
+= 26.
+
+L'espace échantillonnal correspondant au lancer d'un dé est: **S = {1,
+2, 3, 4, 5, 6}**. Donc nS = 6. Si l'événement recherché est une valeur
+supérieure à 4, alors nE = 2... Si deux dés sont lancés et que l'on
+considère la somme des deux observations, alors l'espace échantillonnale
+se compose de 36 événements possibles:
+
+```{r 02-Chap2-5, echo=FALSE}
+row1<-c(2,3,4,5,6,7)
+row2<-c(3,4,5,6,7,8)
+row3<-c(4,5,6,7,8,9)
+row4<-c(5,6,7,8,9,10)
+row5<-c(6,7,8,9,10,11)
+row6<-c(7,8,9,10,11,12)
+matrix(c(row1,row2,row3,row4,row5,row6),nrow=6)
+```
+
+Tous les exemples précédents impliquent des situations simples où les événements possibles sont discrets. L'espace échantillonnal est fini. Dans beaucoup d'autres situations, les événements impliquent des valeurs **continues**, et l'espace échantillonnal est **INFINI**! Par exemple, si l'expérience aléatoire consiste pour un individu à effectuer le trajet entre la maison et le bureau, même si le temps requis varie entre 15 et 30 minutes, il existe un nombre infini de valeurs possibles, en supposant qu'il soit possible de mesurer ce temps avec une précision de $1.0\times10^{-1,000,000,000,000}$ de nano-seconde! Des stratégies seront développées plus tard pour permettre l'étude de ces cas.
+
+### Quelques exemples simples:
+
+Une probabilité **théorique** est définie par:
+$$P(E)=\frac{Nombre~d'occurrence~de~l'événement~E}{Nombre~d'éléments~composant~l'espace~Échantillonnal}=\frac{nE}{nS}$$
+1. En lançant un dé, quelle est la probabilité d'obtenir un 6:
+$$P(6)=\frac{nE}{nS}=\frac{1}{6}=0.17$$ 2. Dans un jeu de 52 cartes, on
+tire une carte. Quelle est la probabilité d'obtenir un Cœur (E~1~) ou un
+As de pique (E~2~) ?
+$$P(Coeur~OU~As~de~Pique)=\frac{nE_1}{nS_1}+\frac{nE_2}{nS_2}=\frac{13}{52}+\frac{1}{52}=\frac{14}{52}=0.27$$
+3. Dans un jeu de 52 cartes, on tire 2 cartes, séquentiellement, en
+replaçant la première carte après avoir pris note de son contenu. Quelle
+est la probabilité d'obtenir un Cœur (E~1~) et un As de pique (E~2~)?
+$$P(Coeur~ET~As~de~Pique)=\frac{nE_1}{nS_1}\times \frac{nE_2}{nS_2}=\frac{13}{52}\times\frac{1}{52}=\frac{13}{2704}=0.0048$$
+Notez ici le relation entre **OU**, impliquant la **somme** des
+probabilités des deux événements, et **ET**, qui implique le **produit**
+de ces probabilités. Nous venons de rencontrer deux règles importantes
+du calcul des probabilités: la règle d'addition, et la règle de
+multiplication d'événements indépendants. Nous y reviendrons sous peu.
+
+#### Exemple 1:
+
+Supposons que les mots de passe permettant d'accéder à un fichier
+spécifique sont composés de 3 lettres majuscules. Quelle est la
+probabilité qu'un mot de passe choisi au hasard ne comporte que des
+lettres différentes.
+
+##### **Solution**:
+
+###### Par simulation:
+
+En prenant un échantillon de trois lettres majuscules
+parmi les 26 lettres disponibles en s'assurant que l'échantillonnage se fait **avec remise** pour permettre les répétitions de lettres, on peut effectuer des comparaisons logiques de chaque paire de lettres sélectionnées afin de déterminer si elles sont différentes l'une de l'autre. Si c'est le cas, on a un 'succès'. En répétant l'exercice un nombre infini de fois (ie un GRAND nombre de fois!), on obtient la probabilité recherchée. Le code R suivant permet une telle simulation. Exécutez ce code en spécifiant un nombre croissant de réplications (**nrep**). Quelle est la probabilité estimée d'obtenir 3 lettres différentes, dans ces conditions?
+
+```{r 02-Chap2-6, tidy=TRUE, tidy.opts=list(arrow=TRUE, indent=2)}
+nrep <- 100    # Nombre de réplications
+ok <- 0        # Initialisation du compteur de 'succès'
+for(i in 1:nrep){
+  x  <-  sample(LETTERS[1:26],3,replace=TRUE)
+  ok <-  ok + (sum((x[1]!=x[2]),(x[1]!=x[3]),(x[2]!=x[3]))==3)
+}
+ cat("Probabilité = ",ok/nrep)
+```
+Une manière plus compacte d'obtenir le même résultat pourrait se formuler ainsi:
+
+```{r}
+nrep = 100    # Nombre de réplications
+x <- replicate(nrep,sample(LETTERS[1:26],3,replace=TRUE))
+y <- as.data.frame(x)
+ok <- sum(rapply(y,function(x)length(unique(x))==3))
+cat("Probabilité = ",ok/nrep)
+```
+Dans cette dernière solution, la fonction **rapply()** permet d'obtenir l'évaluation de chaque échantillon de 3 lettres (ie détermination du nombre de lettres différentes), de manière récursive pour chaque colonne d'un dataframe (**y**) composé de 3 rangées par **nrep** colonnes. On évite ainsi l'utilisation d'une boucle, souvent plus lente.
+
+Cette probabilité, obtenue en répétant l'expérience aléatoire un grand
+nombre de fois et en établissant le rapport entre le nombre de 'succès'
+(nE) et le nombre (N) de répétition de l'expérience est souvent
+qualifiée de '**fréquentielle**'. Sa précision dépend du nombre de
+répétition: plus N est grand, plus on obtient une valeur s'approchant de
+la probabilité '**théorique**', que l'on obtient de manière analytique.
+Pour $N = \infty$, ces deux probabilités sont égales. Ce fait définit la
+'**Loi des Grands Nombres**': lorsque l'expérience est effectuée un très
+grand nombre de fois, la probabilité fréquentielle tend à se rapprocher
+de la probabilité théorique:
+$$\displaystyle \lim_{N \to \infty} \frac{nE}{N}=\frac{nE}{nS}$$
+
+###### Par calcul combinatoire:
+
+1.  Pour obtenir trois lettres différentes dans un mot de passe, il est
+    nécessaire que la sélection se fasse **sans remise**. De cette
+    manière, on s'assure qu'une lettre donnée ne peut pas apparaître une
+    seconde fois dans la séquence de 3 lettres. Le nombre de 'succès'
+    (**nE**) s'obtient donc en considérant que 26 lettres sont
+    disponibles pour la première position; une fois cette lettre
+    sélectionnée, il en reste 25 pour la seconde; puis 24 pour la
+    troisième. Le nombre total de mots de passe composés de trois
+    lettres différentes est donc:
+
+```{r 02-Chap2-7}
+26*25*24
+```
+
+Ce résultat correspond au nombre de permutations de 26 objets (ici, des
+lettres) pris 3 (longueur des mots de passe) à la fois, comme nous le
+verrons plus loin.
+
+2.  On obtient le nombre total de mots de passe composés de trois
+    lettres qu'il est possible de former en procédant à une sélection
+    **avec remise**. Dans ce cas, chacune des trois lettres sera l'une
+    des 26 lettres de l'alphabet, et nS est égal à:
+
+```{r 02-Chap2-8}
+26*26*26
+```
+
+Finalement, la probabilité d'obtenir un mot de passe composé de trois
+lettres différentes est le rapport entre ces deux quantités:
+$$(26\cdot25\cdot24)/26^3$$
+
+```{r 02-Chap2-9}
+(26*25*24)/26^3
+```
+
+Cette probabilité est qualifiée de '**théorique**', par opposition à la
+probabilité **fréquentielle** définie dans les paragraphes précédents.
+
+### Exercice 1
+
+1.  Pour chacune des situations suivantes, définissez l'expérience
+    aléatoire, l'espace échantillonnal, ce que pourrait être un
+    événement, et calculez nE et nS:
+
+  -   Dans un jeu de hasard, on lance 3 pièces de monnaie et on gagne si
+    on obtient 3 FACES ou 3 PILES.
+
+  -   Dans une usine, on fabrique 12 instruments par heure. Ces 12
+    instruments sont ensuite mis en boîte, à la condition qu'il n'y ait
+    pas plus de 2 instruments présentant des défauts de fabrication.
+
+  -   Dans une classe de mathématiques, 35 étudiants sont inscrits. Le
+    professeur espère qu'il n'y aura pas plus de 5 étudiants qui
+    échoueront le cours.
+
+  -   En période de pandémie, un restaurant ne peut accueillir plus de 5
+    clients à la fois. À l'extérieur, 15 personnes attendent pour y
+    entrer et on choisit au hasard celles qui sont admises.
+
+2.  En période de pandémie, un restaurant ne peut accueillir plus de 5
+    clients à la fois. À l'extérieur, 15 personnes attendent pour y
+    entrer et on choisit au hasard celles qui sont admises, et ces 15
+    personnes portent toutes des noms différents. Désignons-les par les
+    numéros 1 à 15.
+
+  -   Quelle est la valeur de nE, si on veut admettre les personnes 1 à 5?
+  -   Quelle est la valeur de nS dans cette situation?
+  -   Quelle est la probabilité que les personnes 1 à 5 soient admises?
+
+3.  De combien de façons différentes peut---on répartir un groupe de 7
+    personnes sur une rangée de 7 chaises ?
+
+4.  Trois garçons et deux filles prennent place sur un banc public de 5
+    places:
+
+  -   De combien de facons différentes, 3 garcons et 2 filles peuvent-ils
+    prendre place sur ce banc?
+  -   De combien de facons peuvent-ils s'asseoir si les garcons s'assoient
+    les uns à côté des autres et s'il en est de méme pour les filles ?
+  -   De combien de maniéres différentes peuvent---ils s'asseoir si
+    seulement les filles s'assoient l'une a côté de l'autre?
+
+## Permutations de n objets:
+
+Une permutation est une séquence de *n* items prix *k* à la fois, sans
+remise. C'est dire que l'ordre de la sélection est pris en compte.
+Par exemple, la séquence {A,B,C} est différente de la séquence {B,A,C}
+ou de {C,B,A} même si elles sont composées des mêmes éléments.
+
+La fonction **permute()** de la librairie **isteahMAT104** permet de dresser une liste complète de toutes les permutations qu'il est possible de former à partir de *n* objets. On obtient donc une liste de l'ensemble des éléments qui se trouvent dans
+l'espace échantillonnal. Pour l'utiliser, il suffit de définir un vecteur contenant les éléments à permuter. Ce vecteur est le seul argument nécessaire. Par exemple:
+
+```{r 02-Chap2-11}
+x  <-  permute(1:5)      # Permutations des nombres 1 à 5
+head(x,10)
+tail(x,10)
+permute(letters[1:4]) # Permutations des lettres a, b, c, d
+```
+
+ATTENTION: la liste des permutations peut être TRÈS longue: avec 5
+éléments, 120 permutations sont possibles; avec 6 éléments, cette liste
+grimpe à 720; avec 8 éléments, on a 40,420 permutations! Je vous laisse
+tenter votre chance avec des nombres plus élevés d'éléments!
+
+Le nombre de permutations de *n* objets est égal à
+$$P(n,n)=n! = n\cdot(n-1)\cdot(n-2)\cdot...\cdot1$$
+
+par exemple: $$P(5,5)=5! = 5\cdot4\cdot3\cdot2\cdot1=120$$ Sous R, la
+fonction **factorial()** permet d'obtenir cette quantité:
+
+```{r 02-Chap2-12}
+factorial(5)
+```
+
+## Permutations de n objets pris k à la fois
+
+Il est très fréquent que l'on doive considérer le nombre de permutations
+de *n* éléments, mais pris *k* à la fois, pour *k* \< *n*. La fonction
+**permut** qui se trouve dans la librairie **randtests** permet
+d'obtenir la liste de ces permutations. Spécifiquement, après avoir
+installé cette librairie:
+
+```{r 02-Chap2-13}
+
+library(randtests)
+permut(1:6,2)
+permut(letters[1:4],2)
+```
+Obtenir une telle liste peut être intéressant dans certaines situations, mais pour nos besoins, l'ingrédient qui est souvent nécessaire pour les calculs de probabilité,
+c'est davantage le NOMBRE de permutations, et non pas la liste de ces
+dernières.
+  
+Formellement, le nombre de permutations de n items pris k à la fois
+s'obtient par:
+
+$$P(n,k) =  \frac{n!}{(n-k)!} = n\cdot(n-1)\cdot...\cdot(n-k+1)$$
+
+Sous R, cette donnée peut s'obtenir simplement par la
+commande suivante:
+
+```{r 02-Chap2-14}
+# perm.n.k  <-  factorial(n)/factorial(n-k)
+#
+# Exemple: Nombre de permutations de 6 objets pris 2 à la fois
+perm.n.k  <-  factorial(6)/factorial(6-2)
+perm.n.k
+#
+# ou
+#
+perm.n.k  <-  prod(6:(6-2+1))
+perm.n.k
+```
+
+### Exemple 3:
+
+Supposons que les mots de passe donnant droit à un site WEB se composent
+de 6 caractères choisis parmi les 10 nombres et les 26 lettres de
+l'alphabet, et que ces lettres peuvent être minuscules ou majuscules.
+Dans ces conditions: 
+  
+a) combien de mots de passe sont possibles?
+
+    Solution:
+    1. Le nombre de caractères disponibles est 10 + 26 x 2 = 62
+    2. Chaque caractère composant un mot de passe est l'une de ces 62 possibilités...
+    3. Donc le nombre total de mots de passe de 6 caractères que l'on peut produire est:
+
+$$62^6 = 62 \times 62 \times 62 \times 62 \times 62 \times 62 = 56,800,235,584$$
+        
+    Sous R:
+
+```{r 02-Chap2-15}
+62^6
+```
+
+b)  Quelle est la proportion des mots de passe composés de 6 caractères
+    différents?
+
+```{=html}
+<!-- -->
+```
+    Solution:
+
+    - Par simulation: le code suivant est approprié dans ce cas:
+
+```{r 02-Chap2-16, eval = FALSE}
+nrep  <-  1000    # Nombre de réplications
+ncar  <-  6       # Nombre de caractères pour mots de passe
+caract  <-  c(LETTERS[1:26],letters[1:26],as.character(0:9))
+succes  <-  0
+i  <-  1
+repeat{
+  x  <-  sample(caract,ncar,replace=TRUE)
+  succes=succes+(sum(duplicated(x))==0)   # nE
+  i  <-  i+1
+  if(i==nrep){break}
+}
+ cat("Probabilité = ",succes/nrep)
+```
+De manière alternative (et plus compacte), on obtient un résultat similaire:
+
+```{r}
+nrep  <-  1000    # Nombre de réplications
+ncar  <-  6       # Nombre de caractères pour mots de passe
+caract  <-  c(LETTERS[1:26],letters[1:26],as.character(0:9))
+x <- replicate(nrep,sample(caract,ncar,replace=TRUE))
+y <- as.data.frame(x)
+succes <- sum(rapply(y,function(x)sum(duplicated(x))==0))
+cat("Probabilité = ",succes/nrep)
+```
+    En exécutant ce code avec nrep = 100,000, on obtient:
+
+```{r 02-Chap2-17, tidy=TRUE, tidy.opts=list(arrow=TRUE, indent=2)}
+nrep  <-  100000    # Nombre de réplications
+ncar  <-  6         # Nombre de caractères pour mots de passe
+
+caract  <-  c(LETTERS[1:26],letters[1:26],as.character(0:9))
+succes  <-  0
+i  <-  1
+repeat{
+  x  <-  sample(caract,ncar,replace=TRUE)
+  succes=succes+(sum(duplicated(x))==0)   # nE
+  i  <-  i+1
+  if(i==nrep){break}
+}
+ cat("Probabilité = ",succes/nrep)
+```
+
+    - Par calcul combinatoire:
+      
+$$P(62,6) = 62 \times 61 \times ... \times (62 - 6 + 1) / 62^6$$
+
+        Sous R:
+
+```{r 02-Chap2-18}
+prod(62:57)/62^6
+```
+
+### Exemple 4:
+
+Dans une ligne d'attente se trouvent 6 personnes. En supposant qu'aucune
+d'elles ne porte un nom de famille commençant par la même lettre, quelle
+est la probabilité que leur position dans la ligne d'attente corresponde
+à l'ordre alphabétique de leur nom de famille?
+
+Solution:
+
+1.  Désignons ces personnes par les numéros 1 à 6: **pers = 1:6**
+2.  De combien de façon 6 personnes dont les noms de famille débutent
+    par des lettres différentes peuvent-elles être alignées dans un
+    ordre alphabétique? **Rep: une seule**
+3.  Quel est le nombre de permutations de 6 personnes prises 6 à la
+    fois? $$P(6,6)=6\cdot5\cdot4\cdot3\cdot2\cdot1=6!=720$$
+4.  Donc la probabilité recherchée est: 1/720 = **0.00139**
+
+### Exercice 2
+
+1.  Un comité de 3 personnes doit être formé à partir d'un groupe de 12
+    employés d'un grand commerce. Une des 3 personnes sélectionnées sera
+    présidente du comité, une autre sera secrétaire, et l'autre agira
+    comme conseillère.\
+
+-   Combien de comités différents sont possibles?
+-   En supposant que les 12 employés du commerce portent des noms
+    différents, combien de comités seraient composé de 'Marie-Lune',
+    'Pierre', et 'Harold'?
+-   Quelle est la probabilité que ce dernier événement se produise?
+-   Si 'Pierre' doit nécessairement être Président en raison de son
+    ancienneté dans l'entreprise, dans combien de comités lui
+    associerait-on 'Marie-Lune' et 'Harold'?
+-   Quelle est la probabilité que ce dernier événement se produise?
+
+## Combinaisons de *n* objets pris *k* à la fois
+
+Les permutations tiennent compte de l'ordre des différents éléments. Par
+exemple, une permutation formée des éléments (A, B, C) est différente de
+(B, A, C).
+
+Une combinaison est une séquence d'objets dans laquelle l'ordre **n'est
+pas** pris en compte. Ainsi, les séquences {A,B,C}, {A,C,B}, {C,A,B},
+{C,B,A} sont équivalentes, alors qu'elles sont des permutations
+distinctes.
+
+Le nombre de combinations de *n* objets pris *k* à la fois est donné
+par:
+
+$$C(n,k) = \frac{n!}{k!(n-k)!} = \frac{P(n,k)}{P(k,k)}$$
+
+Par exemple, le nombre de combinaisons de 5 objets pris 3 à la fois est:
+
+$$C(5,3) = \frac{5!}{3!(5-3)!} = \frac{P(5,3)}{P(3,3)} = 10$$
+
+Reprenant l'exemple 1, le nombre de combinaisons des 26 lettres de
+l'alphabet prises 3 à la fois est:
+
+$$C(26,3) =     \frac{26!}{3!(26-3)!} = \frac{26\cdot(26-1)\cdot...\cdot(26-3+1)}{3\cdot2\cdot1} = 2,600$$
+Notons que le nombre de permutations de *n* objets pris *k* à la fois,
+$P(n,k)$, peut se définir en terme de combinaisons. En effet:
+$$P(n,k)=\frac{n!}{(n-k)!} = \frac{k!n!}{k!(n-k)!}=k!C(n,k)$$
+### Exemple 2:
+
+Le nombre de séquences de 6 lettres distinctes formées à partir des
+lettres A-J (10 lettres) est égal à
+$$C(n,k)=\frac{n!}{k!(n-k)!} = \frac{P(n,k)}{P(k,k)}=\frac{P(n,k)}{k!}$$
+
+$$C(10,6) =\frac{10!}{6!(10-6)!} = \frac{10\cdot9\cdot8\cdot7}{4\cdot3\cdot2\cdot1}  = 210$$
+
+Sous R, on obtient le nombre de combinaisons de *n* objets pris *k* à la
+fois à l'aide de la fonction **choose()**:
+
+```{r 02-Chap2-19}
+choose(10,6)
+```
+
+et le nombre de permutations serait:
+
+```{r 02-Chap2-20}
+choose(10,6) * factorial(6)
+```
+
+### Exercice 3
+
+1.  De combien de maniéres peut-on former un jury de 3 hommes et 2
+    femmes parmi 7 hommes et 5 femmes ?
+
+2.  À l'occasion d'un examen, un étudiant doit répondre à 8 questions
+    sur un total de 10.
+
+-   Combien de choix de questions sont possibles ?
+-   Combien de choix y a-t-il s'il doit répondre aux 3 premières
+    questions ?
+-   Combien de choix y a---t-il s'il doit répondre au moins à 4 des 5
+    premières questions ?
+
+3.  Combien de plaques d'immatriculation de véhicules peut-on former si
+    chaque plaque contient 2 lettres différentes suivies de 3 chiffres
+    différents ?
+
+## Calcul de probabilités: Quelques règles élémentaires
+
+Il existe un petit nombre de règles élémentaires que l'on doit connaître
+pour obtenir des estimations justes de probabilités. Certaines d'entre
+elles ont déjà été utilisées intuitivement dans les exemples antérieurs.
+
+### Règle d'addition - Événements mutuellement exclusifs (ou disjoints):
+
+Lorsque deux événements sont indépendants et mutuellement exclusifs (ou
+disjoints), n'ayant aucun élément en commun, la probabilité qu'un **ou**
+l'autre de ces événements survienne est donnée par la somme des
+probabilités de chacun d'eux. Par exemple, si on note le lieu de
+résidence de 100 individus et que 30 d'entre eux sont du département du
+Centre (C), 50 d'Artibonite (A) et 20 de l'Ouest (O), quelle est la
+probabilité qu'une personne choisie au hasard provienne d'Artibonite ou
+du Centre?
+$$P(A \cup C)=P(A)+P(C)=\frac{50}{100}+\frac{30}{100}=\frac{80}{100}=0.80$$
+### Règle d'addition générale - Événements non-mutuellement exclusifs (ou compatibles)
+
+Lorsque deux événements peuvent survenir simultanément, n'étant pas
+mutuellement exclusifs, la règle d'addition doit être modifiée pour
+tenir compte du nombre de cas faisant partie des deux événements.
+
+Par exemple, supposons 100 étudiants de l'ISTEAH devant s'inscrire à au
+moins un de deux cours: Physique et/ou Chimie. Sur les 100 étudiants, 50
+se sont inscrits au cours de Physique, 40 se sont inscrits au cours de
+Chimie, et 10 se sont inscrits aux deux cours. Finalement, 20 étudiants
+n'ont pas encore fait leur choix. La situation peut se résumer à l'aide
+d'un diagramme de Venn, produit avec la fonction **draw.pairwise.venn()** se
+trouvant dans la librairie **VennDiagram**:
+
+```{r 02-Chap2-21, tidy=TRUE, tidy.opts=list(arrow=TRUE, indent=2)}
+library(VennDiagram)
+grid.newpage()  # Nettoyer la page graphique
+#
+venn.plot <- draw.pairwise.venn(
+  area1 = 50,
+  area2 = 40,
+  cross.area = 10,
+  category = c("Physique", "Chimie"),
+  fill = c("lightblue", "lightcoral"),
+  lwd = c(2,2),
+  col = rep("black",2),
+  cex = 2,
+  cat.cex = 2,
+  cat.pos = c(0,0),
+  cat.dist = rep(0.05,2),
+  cat.col = c("blue", "coral")
+)
+```
+
+Quelle serait la probabilité qu'un étudiant s'inscrive au cours de
+Physique (A) **OU** au cours de Chimie (B)? En examinant le diagramme de
+Venn, on peut voir que l'intersection est partie à la fois de A et de B.
+Il est donc nécessaire d'en soustraire un exemplaire:
+$$P(A \cup C)=P(A)+P(C)-P(A\cap B)=\frac{50}{100}+\frac{30}{100}-\frac{10}{100}=\frac{80}{100}=0.80$$
+Supposons maintenant qu'un troisième cours s'ajoute à l'horaire. Cette
+fois-ci, nous avons 200 étudiants devant choisir au moins un cours parmi
+Statistiques, Physique et Chimie. Sur 200 étudiants,
+
+    - 60 se sont inscrits au cours de Statistiques     (Événement A)
+    - 100 se sont inscrits au cours de Physique        (Événement B)
+    - 120 se sont inscrits au cours de Chimie          (Événement C)
+    - 30 ont choisi les cours de Probabilité et de Physique
+    - 20 ont choisi les cours de Probabilité et de Chimie
+    - 40 ont choisi les cours de Physique et de Chimie
+    - 20 étudiants ambitieux ont choisi les trois cours
+    - 10 étudiants n'ont pas encore fait leur choix
+
+Le diagramme de Venn résumant ces données est reproduit ci-dessous.
+Il est créé à l'aide de la fonction **draw.triple.venn()** de la librairie **VennDiagram**:
+
+```{r 02-Chap2-22, tidy=TRUE, tidy.opts=list(arrow=TRUE, indent=2),error=FALSE}
+
+library(VennDiagram)
+grid.newpage();
+# A more complicated diagram
+venn.plot <- draw.triple.venn(
+  area1 = 100,
+  area2 = 120,
+  area3 = 60,
+  n12 = 60,
+  n23 = 20,
+  n13 = 30,
+  n123 = 20,
+  category = c("Physique", "Chimie", "Stats"),
+  fill = c("lightblue", "lightcoral", "lightgreen"),
+  lwd = rep(2,3),
+  col = rep("black",3),
+  cex = 2,
+  cat.cex = 2,
+  cat.dist = rep(0.08,3),
+  cat.pos = c(-25,25,0),
+  cat.col = c("blue", "red", "darkgreen")
+)
+
+```
+
+L'espace échantillonnal correspond à l'ensemble des étudiants
+susceptibles de s'inscrire à au moins un des 3 cours offerts, incluant
+ceux qui n'ont pas encore fait leur choix (nS = 200).
+
+### Exercice:
+
+1.  Quelle est donc la probabilité qu'un étudiant s'inscrive à un cours
+    de Physique (B), OU à un cours de Chimie (C)?
+
+$$P(B \cup C)=P(B)+P(C)-P(B\cap C)=\frac{100}{200}+\frac{120}{200}-\frac{60}{200}=\frac{160}{200}=0.80$$
+
+2.  Quelle est la probabilité qu'un étudiant s'inscrive à un cours de
+    Physique ET de Chimie?
+
+3.  Quelle est la probabilité qu'un étudiant ne s'inscrive pas à un
+    cours de Stats?
+
+4.  Quelle est la probabilité qu'un étudiant s'inscrive à un cours de
+    Chimie, mais pas à un cours de Stats?
+
+5.  Quelle est la probabilité qu'un étudiant s'inscrive à un cours de
+    Physique et à un cours de Chimie, mais pas à un cours de Stats?
+
+6.  Quelle est la probabilité qu'un étudiant s'inscrive à 2 cours
+    seulement?
+
+7.  Quelle est la probabilité qu'un étudiant ne s'inscrive qu'à un seul
+    cours?
+
+8.  Quelle est la probabilité qu'un étudiant s'inscrive aux trois cours?
+
+9.  Quelle est la probabilité qu'un étudiant ne soit encore inscrit à
+    aucun cours?
+
+10. Quelle est la probabilité qu'un étudiant s'inscrive à un cours de
+    Physique, OU à un cours de chimie, mais pas les deux à la fois?
+
+11. Quelle est la probabilité qu'un étudiant s'inscrive soit au cours de
+    Stats uniquement, soit au cours de Physique ET au cours de Chimie
+    (mais pas au cours de Stats)?
+
+### Règle de multiplication: événements indépendants
+
+Lorsque deux événements sont indépendants, la probabilité qu'ils se
+produisent en même temps est donnée par:
+
+$$P(A \cap B)=P(A)\times P(B)$$ Par exemple, quelle est la probabilité
+qu'un étudiant s'inscrive au cours de Physique (A)  **ET** au cours de
+Chimie (B)?
+
+$$P(A \cap B)=P(A)\times P(B)=\frac{100}{200}\times\frac{120}{200}=0.30$$
+En effet, 60/200 étudiants se sont inscrits aux deux cours (Physique et
+Chimie), ce qui représente 30% de l'effectif. Un examen du diagramme de
+Venn illustre clairement cette donnée.
+
+### Règle de multiplication générale: Événements dépendants
+
+De la même manière que la règle d'addition énoncée ci-dessus doit
+réfléter la nature mutuellement/non mutuellement exclusive des
+événements, la règle de multiplication doit tenir compte de la
+dépendance des événements en cause, si cette dépendance existe. Ceci
+requiert la notion de **probabilité conditionnelle**, définie comme la
+probabilité qu'un événement survienne, **étant donné** qu'un autre
+événement est déjà survenu.
+
+Reprenons le diagramme de Venn représentant les inscriptions de 100
+étudiants de l'ISTEAH aux cours de Physique et de Chimie:
+
+
+```{r 02-Chap2-23, tidy=TRUE, tidy.opts=list(arrow=TRUE, indent=2)}
+library(VennDiagram)
+grid.newpage()  # Nettoyer la page graphique
+#
+venn.plot <- draw.pairwise.venn(
+  area1 = 50,
+  area2 = 40,
+  cross.area = 10,
+  category = c("Physique", "Chimie"),
+  fill = c("lightblue", "lightcoral"),
+  lwd = c(2,2),
+  col = rep("black",2),
+  cex = 2,
+  cat.cex = 2,
+  cat.pos = c(0,0),
+  cat.dist = rep(0.05,2),
+  cat.col = c("blue", "coral")
+)
+```
+
+De ce diagramme, on constate que la probabilité qu'un étudiant
+s'inscrive au cours de Physique est P(A) = 50/100 = 0.5. De même, on
+constate que 10 étudiants se sont inscrits aux 2 cours:
+$P(A\cap B) = 10/100=0.10$. Finalement, sachant qu'un étudiant s'est
+inscrit au cours de Physique, quelle est la probabilité qu'il s'inscrive
+aussi au cours de Chimie? Ici, l'espace échantillonnal se rétrécit! Il
+s'agit maintenant non pas de l'ensemble des étudiants, mais seulement
+des étudiants inscrits en Physique! Donc la probabilité doit tenir
+compte de ce fait. On trouve 10 étudiants inscrits au cours de Chimie,
+sur les 50 qui sont déjà inscrits au cours de Physique. En conséquence,
+la probabilité recherchée est:
+$$P(B|A)=\frac{P(A \cap B)}{P(A)}=\frac{10}{50}=0.20$$ On lit: la
+probabilité que B survienne, étant donné que A s'est produit, et égale à
+la probabilité que A et B surviennent, divisé par la probabilité
+**marginale** de A. Il s'agit ici de la **probabilité conditionnelle**.
+
+De la même manière, on pourrait obtenir la probabilité que A survienne,
+étant donné que B s'est déjà produit:
+
+$$P(A|B)=\frac{P(A \cap B)}{P(B)}=\frac{10}{40}=0.25$$ On note ici que
+$P(A|B)\neq P(B|A)$.
+
+De ces considérations, on peut donc énoncer la règle de multipliction
+générale:
+$$P(A|B)=\frac{P(A \cap B)}{P(B)}~~~~\to ~~~~P(A \cap B)=P(B)\times P(A|B) $$
+Cette définition suggère également une stratégie pour vérifier
+l'indépendance de deux événements:
+
+$$Événements~indépendants:~~~~~~ P(A \cap B)=P(A)\times P(B)$$
+$$Événements~dépendants:~~~~~~~~~~~ P(A \cap B)=P(A)\times P(A|B)$$
+
+Si les événements sont indépendants, alors $P(B)=P(A|B)$. Il suffit donc
+de vérifier cette égalité pour déterminer cette indépendance. De manière
+alternative, on peut simplement vérifier: $P(A \cap B)=P(A)\times P(B)$.
+Si ces deux termes sont égaux, les événements sont indépendants. Sinon,
+ils sont dépendants.
+
+Par exemple, supposons une urne contenant 6 balles numérotées de 1 à 6,
+et définissons les événements suivants:\
+- A = nombre pair = {2, 4, 6}\
+- B = Nombre impair = {1, 3, 5}\
+- C = Multiple de 3 = {3, 6}
+
+Le diagramme de Venn, cette fois-ce créé à l'aide de la fonction **ggvenn()** de la librairie du même nom, illustre cette situation:
+
+```{r 02-Chap2-24}
+library(ggvenn)
+grid.newpage()  # Nettoyer la page graphique
+
+x=list("A" = c(2,4,6),
+		"B" = c(1,3,5),
+		"C" = c(3,6))
+ggvenn(x,show_elements=TRUE,text_size=6)  # Création du diagramme
+```
+
+1.  Dans ce contexte, peut-on affirmer que les événements A et B sont
+    dépendants? Pour répondre à cette question, vérifions l'égalité
+    suivante: $$ P(A\cap B)=P(A)\times P(B)$$
+    $$ P(A \cap B)=0~~~~~~~P(A)=3/6~~~~~~~~P(B)=3/6~~~~~~~~P(A) \times P(B)=0.25$$
+    Puisque l'égalité n'est pas réalisée, on doit conclure que les
+    événements A et B sont dépendants.
+
+2.  Dans ce contexte, peut-on affirmer que les événements A et C sont
+    dépendants? Pour répondre à cette question, vérifions l'égalité
+    suivante: $$ P(A\cap C)=P(A)\times P(C)$$
+    $$ P(A \cap C)=1/6~~~~P(A)=3/6~~~~~P(C)=2/6~~~~~P(A) \times P(C)=3/6\times 2/6=1/6 $$
+    Puisque l'égalité se réalise, on peut affirmer que les événements A
+    et C sont indépendants.
+
+### Exercice:
+
+1.  Donnez suite à l'exemple précédent: est-ce que les événements B et C
+    sont indépendants?
+
+2.  Reprenons l'exemple portant sur les inscriptions aux cours de Stats,
+    de Chimie et de Physique, à l'ISTEAH. Le diagramme de Venn est
+    reproduit ci-dessous:
+
+```{r 02-Chap2-25, tidy=TRUE, tidy.opts=list(arrow=TRUE, indent=2)}
+
+library(VennDiagram)
+grid.newpage();
+# A more complicated diagram
+venn.plot <- draw.triple.venn(
+  area1 = 100,
+  area2 = 120,
+  area3 = 60,
+  n12 = 60,
+  n23 = 20,
+  n13 = 30,
+  n123 = 20,
+  category = c("Physique", "Chimie", "Stats"),
+  fill = c("lightblue", "lightcoral", "lightgreen"),
+  lwd = rep(2,3),
+  col = rep("black",3),
+  cex = 2,
+  cat.cex = 2,
+  cat.dist = rep(0.08,3),
+  cat.pos = c(-25,25,0),
+  cat.col = c("blue", "red", "darkgreen")
+)
+```
+
+a.  Est-ce que l'inscription à un cours de Physique est indépendante
+    d'une inscription à un cours de Chimie?
+
+b.  Est-ce que l'inscription à un cours de Physique est indépendante
+    d'une inscription à un cours de Stats?
+
+c.  Est-ce que l'inscription à un cours de Chimie est indépendante d'une
+    inscription à un cours de Stats?
+
+## Tableaux de contingence
+
+L'ensemble des notions qui ont été présentées dans cette section peuvent
+aisément se réfléter dans un tableau de contingence. Par exemple, les
+inscriptions des étudiants aux cours de Physique et de Chimie peuvent
+être résumées dans le tableau suivant:
+
+```{r 02-Chap2-26, echo=FALSE}
+B.1=c(40,30,70)
+B.0=c(20,10,30)
+TotR=c(60,40,100)
+x=data.frame(B.1,B.0,TotR)
+row.names(x)=c("A.1","A.0","TotC")
+kable(x, booktabs=TRUE, caption="Répartition des Effectifs") %>%
+  kable_styling(full_width = FALSE)
+
+```
+
+Dans ce tableau, A représente l'inscription au cours de Physique (A.1 =
+Oui, A.0 = Non), B l'inscription au cours de Chimie (B.1 = Oui, B.0 =
+Non).
+
+D'un tel tableau, il est facile d'obtenir les différentes probabilités
+qui pourraient nous intéresser:
+
+**Probabilités Marginales**: 
+$$P(A)=\frac{TotR}{N}=\frac{60}{100}$$
+$$P(B)=\frac{TotC}{N}=\frac{70}{100}$$ 
+**Probabilités conjointes**:
+
+$$P(A_{1} \cap B_{1})=\frac{f_{11}}{N}=\frac{40}{100}$$ 
+$$P(A_{1} \cap B_{0})=\frac{f_{10}}{N}=\frac{20}{100}$$ 
+$$P(A_{0} \cap B_{1})=\frac{f_{01}}{N}=\frac{30}{100}$$ 
+$$P(A_{0} \cap B_{0})=\frac{f_{00}}{N}=\frac{10}{100}$$ 
+
+**Probabilités conditionnelles**: 
+
+$$P(A_{1}|B_1)=\frac{f_{11}}{Tot_{B_1}}=\frac{40}{70}$$
+$$P(A_{0}|B_1)=\frac{f_{01}}{Tot_{B_1}}=\frac{30}{70}$$
+$$P(A_{1}|B_0)=\frac{f_{10}}{Tot_{B_0}}=\frac{20}{30}$$
+$$P(A_{0}|B_0)=\frac{f_{00}}{Tot_{B_0}}=\frac{10}{30}$$
+$$P(B_{1}|A_1)=\frac{f_{11}}{Tot_{A1}}=\frac{40}{60}$$ 
+$$P(B_{0}|A_1)=\frac{f_{01}}{Tot_{A1}}=\frac{20}{60}$$ 
+$$P(B_{1}|A_0)=\frac{f_{10}}{Tot_{A0}}=\frac{30}{40}$$ 
+$$P(B_{0}|A_0)=\frac{f_{00}}{Tot_{A0}}=\frac{10}{40}$$ 
+
+Notons ici qu'en aucun cas nous nous sommes éloignés de la définition formelle d'une
+probabilité: rapport entre le nombre de 'succès' et la taille de l'espace échantillonnal...
+
+Pour résumer le tout, considérons le tableau de contingence suivant, composé de deux rangées et trois colonnes. Le premier tableau contient simplement les fréquences observées dans chacune des cellules ($f_{rc}$), ainsi que les totaux marginaux ($T_R$ et $T_C$). Le nombre total d'observation se trouve dans la case inférieure droite:
+
+
+```{r}
+x=matrix(c(20,30,40,10,20,30),nrow=2,byrow=TRUE)
+tbl <- cbind(x,rowSums(x))
+tbl <- rbind(tbl,c(colSums(x),sum(x)))
+rownames(tbl) <- c("A1","A2","Tc")
+colnames(tbl) <- c("B1","B2","B3","Tr")
+kable(tbl, booktabs=TRUE,caption="Répartition des Effectifs") %>%
+  kable_styling(full_width = FALSE)
+``` 
+Les probabilités marginales  $[P(R),P(C)]$ sont les rapports entre les totaux marginaux $[T_R,T_C]$ et le nombre total d'observations ($N$):
+
+```{r}
+df <- tbl
+df[1:2, 4] <- tbl[1:2,4]/tbl[3,4]
+df[3, 1:3 ] <- tbl[3,1:3]/tbl[3,4]
+df <- as.data.frame(round(df,4))
+df %>% 
+  format_cells(1:2,4,"bold") %>%
+  format_cells(3,1:3,"bold") %>%
+  knitr::kable(booktabs=TRUE,caption="Probabilités Marginales") 
+
+```
+
+On obtient les probabilités conjointes $P(R_i\cap C_j)$ en divisant chacune des fréquences observées dans les cellules par le nombre total d'observations:
+
+
+```{r}
+df[1:2,1:3] <- tbl[1:2,1:3]/tbl[3,4]
+round(df,4) %>% 
+  format_cells(1:2,1:3,"bold") %>%
+  knitr::kable(booktabs=TRUE,caption="Probabilités Conjointes") 
+
+``` 
+Finalement, on obtient les probabilités conditionnelles en divisant les fréquences observées dans les différentes cellules par le total marginal des rangées, ou des colonnes. On obtient évidemment le même résultat en calculant le rapport entre les probabilités conjointes et la probabilité marginale appropriée:
+
+```{r}
+dfr <- df[1:2,1:3]/df[1:2,4]
+round(dfr,4) %>% 
+  format_cells(1:2,1:3,"bold") %>%
+  knitr::kable(booktabs=TRUE,caption="Probabilités Conditionnelles (R|C)") 
+
+m <- df[1:2,1:3]
+v <- df[3,1:3]
+dfc <- m / v[col(m)]
+round(dfc,4) %>% 
+  format_cells(1:2,1:3,"bold") %>%
+  knitr::kable(booktabs=TRUE,caption="Probabilités Conditionnelles (C|R)") 
+
+```
+
+
+## L'arbre de probabilités
+
+À partir d'un tableau de contingence tel que le précédent, il est
+possible de produire une représentation prenant la forme d'une
+arborescence fournissant l'ensemble des probabilités discutées
+jusqu'ici. Pour produire une telle arborescence, on utilisera avantageusement la fonction **treeDiag()** de la librairie **openintro**. Les principaux arguments de cette fonction sont:
+  - main : un vecteur alphanumérique contenant l'étiquette permettant d'identifier les deux variables. Exemple: main = c("A","B")
+  - p1 : vecteur des probabilités associées à la branche principale
+  - p2 : vecteur des probabilités associées à la branche secondaire
+  - out1 : vecteur alphanumérique contenant les étiquettes identifiant les événements survenant sous la branche principale
+  - out2 : vecteur alphanumérique contenant les étiquettes identifiant les événements survenant sous la branche secondaire
+  - ShoSol : valeur booléenne indiquant si une solution est désirée (calcul des probabilités conjointes)
+  - digits : nombre de décimales à afficher
+  
+Afin d'illustrer l'utilisation de cette fonction, considérons les données résumées dans le tableau de contingence défini au paragraphe précédent:
+
+```{r}
+x=matrix(c(20,30,40,10,20,30),nrow=2,byrow=TRUE)
+tbl <- cbind(x,rowSums(x))
+tbl <- rbind(tbl,c(colSums(x),sum(x)))
+rownames(tbl) <- c("A1","A2","Tc")
+colnames(tbl) <- c("B1","B2","B3","Tr")
+kable(tbl, booktabs=TRUE,caption="Répartition des Effectifs") %>%
+  kable_styling(full_width = FALSE)
+
+```
+et pour lequel on a calculé les probabilités marginales P(R) et P(C), de même que les probabilités conditionnelles P(R|C):
+
+```{r}
+pconj <- tbl[1:2,1:3]/tbl[3,4]
+pmargr <- rowSums(tbl[1:2,1:3])/tbl[3,4]
+pmargc <- colSums(tbl[1:2,1:3])/tbl[3,4]
+pcond <- pconj / pmargc[col(pconj)]
+pcond <- rbind(pcond,pmargc)
+pcond <- cbind(pcond,c(pmargr,1))
+rownames(pcond) <- c("A1","A2","P(C)")
+colnames(pcond) <- c("B1","B2","B3","P(R)")
+
+
+kable(round(pcond,4), booktabs=TRUE,caption="P(R|C)") %>%
+  kable_styling(full_width = FALSE)
+```
+
+À partir de ce dernier tableau, on obtient l'arbre des probabilités:
+
+```{r}
+library(openintro)
+p1 <- round(pcond[1,1:3],3)
+p2 <- round(pcond[2,1:3 ],3)
+treeDiag(c("Événement A","Événement B"), c(.6,.4),
+         list(p1,p2), c("A1","A2"),c("B1", "B2","B3"),
+         showWork = TRUE,col.main="darkblue")
+```
+Les probabilités affichées dans les deux premiers noeuds sont les
+probabilités marginales [P(A1)=0.6, P(A2)=0.4]. Les noeuds
+suivants contiennent les probabilités conditionnelles, et les résultats affichés à la droite sont les probabilités conjointes, produits des
+probabilités marginales et des probabilités conditionnelles.
+
+## Distribution de fréquences et probabilités
+
+En recherche scientifique, il est fréquent de condenser un ensemble
+d'observations (événements) dans un tableau affichant chaque valeur
+possible et le nombre d'occurrence correspondant. Par exemple,
+considérons le tableau suivant, résumant l'âge d'un groupe d'élèves du
+Lycée:
+
+```{r 02-Chap2-30, echo=FALSE}
+agef = data.frame(age = 12:17,freq = c(6,3,10,4,2,5))
+kable(agef, booktabs=TRUE, caption="Répartition des Effectifs/Age") %>%
+  kable_styling(full_width = FALSE)
+```
+
+Dès à présent, vous devriez être en mesure de répondre aux questions
+suivantes:
+
+1.  Quelle est la probabilité, en choisissant au hasard un de ces
+    élèves, qu'il soit âgé
+
+```{=html}
+<!-- -->
+```
+a.  de 13 ans?\
+    - Le nombre total d'observations est nS = 30.\
+    - Le nombre d'observations correspondant à âge = 13 est nE = 3.\
+    - Donc P(âge=13)= 3/30 = 0.10\
+b.  de 15 ans ou moins?
+    - Le nombre total d'observations est toujours nS = 30.\
+    - Le nombre d'observations correspondant à âge $\leq$ 15 est nE = (4 + 10 + 3 + 6) = 23.\
+    - Donc P(âge $\leq$ 15)= 23/30 = 0.767
+  
+À vous de jouer...  
+  
+c.  d'au moins 16 ans?
+d.  d'au plus 13 ans?
+e.  de 12 ou de 17 ans?
+
+Ce type d'exercice sera récurrent à chacune des étapes de votre
+formation!
+
+### En bref...
+
+L'ensemble des sections précédente résume l'essentiel de l'approche
+classique de l'évaluation de probabilités. Nous avons présentés les principales méthodes
+nous permettant d'obtenir la taille de l'espace échantillonnal afin de
+pouvoir calculer les probabilités associées à différents sous-ensembles
+de cet espace. Dans les sections suivantes, l'approche fréquentiste sera
+mise à profit pour obtenir de telles probabilités par simulation
+informatique.
+
+## Simulation d'un lancer de pièces de monnaie
+
+Dans la section précédente, nous avons solutionné quelques problèmes de
+calcul de probabilités en établissant le rapport entre le nombre de fois
+qu'un événement survient et le nombre total d'expériences aléatoires
+effectuées. On se souviendra qu'une probabilité obtenue de cette manière
+représente le résultat que l'on s'attend d'obtenir en effectuant
+l'expérience aléatoire un nombre infini de fois. Dire qu'on a une
+probabilité de 0.25 d'obtenir 2 FACEs en lançant 2 pièces de monnaie
+signifie que si on lance les 2 pièces de monnaie un nombre infini de
+fois, à la limite, on obtiendra deux faces une fois sur 4 lancers.
+
+Évidemment qu'il serait fastidieux d'effectuer une expérience aléatoire
+un nombre infini de fois, mais si on remplace le terme **infini** par
+les termes **un très grand nombre** de fois, on se retrouve dans un
+contexte réalisable... si on a accès à un ordinateur pour se charger du
+travail!
+
+La fonction **CoinToss()** permet de simuler le lancer d'une pièce de monnaie. Cette fonction se trouve dans la librairie **isteahMAT104**. Ses arguments sont *n* = Nombre de pièces à lancer, et *p* = la probabilité d'obtenir un des deux résultats possibles ('PILE' ou
+'FACE'). Par défaut, une seule pièce est lancée et la probabilité du
+résultat désiré est 0.5. On peut changer ces arguments selon le besoin:
+
+```{r 02-Chap2-32}
+library(isteahMAT104)
+CoinToss()      # n=1, p=0.5
+
+CoinToss(10)      # lancer de 10 pièces, p=0.5
+
+CoinToss(5,0.7) # Lancer de 5 pièces, p=0.7 (pièce trafiquée!)
+
+```
+
+Pour simuler le lancer d'un certain nombre de pièces un grand nombre de
+fois, il suffira d'introduire les arguments appropriés dans la fonction
+CoinToss(), et d'examiner les événements qui en résultent sur le nombre d'essais désirés. 
+
+## Exercice 4
+
+1.  Avant d'exécuter CoinToss() pour simuler le lancer d'une seule
+    pièce de monnaie, écrivez sur une feuille de papier votre prédiction
+    quant au résultat: Pile, ou Face. Activez la fonction, et inscrivez
+    à droite de votre prédiction '1' si votre prédiction est correcte,
+    et '0' si elle ne s'est pas réalisée. Répétez l'exercice 20 fois!
+2.  Combien de vos prédictions se sont avérées correctes? Combien de
+    prédictions justes faudrait-il pour que vous puissiez vous
+    considérer comme 'devin' ?
+3.  Simulez le lancer de 20 pièces de monnaie, en supposant que la
+    probabilité associée au résultat est 0.5. Comparez les résultats
+    avec ceux que vous avez obtenus en (2). Est-ce que les résultats
+    sont différents? Comment expliquez-vous cette différence, si elle
+    existe?
+
+```{r 02-Chap2-33}
+
+set.seed(1876534)
+x = CoinToss(20)
+x
+```
+
+5.  Combien de côtés 'PILE' avez-vous obtenus? Combien de côtés 'FACE'
+    sont apparus? Est-ce que ces résultats sont compatibles avec l'idée
+    que les probabilités P(PILE) et P(FACE) sont égales?
+6.  Relancez la simulation: est-ce que les résultats sont différents du
+    premier essai?
+7.  S'il y a différence, comment l'expliqueriez-vous?
+8.  Essayons de représenter graphiquement ce résultat à l'aide d'un
+    diagramme en secteur. Le code R qui nous permet de le faire est:
+
+```{r 02-Chap2-34}
+slices=c(sum(x=="Face"),sum(x=="Pile")) # Définition des secteurs
+lbls=c("Face","Pile")                   # Définition des étiquettes
+pie(slices, labels = lbls, main="Répartition des résultats Pile/Face")
+```
+
+9.  Répétez l'exercice en simulant le lancer de 5, 10, 15, 50 et 100
+    pièces. Obtenez le diagramme en secteurs pour chaque simulation.
+    Quelle conclusion tirez-vous concernant l'impact de l'augmentation
+    de la taille de l'échantillon (nombre de pièces de monnaie))?
+
+## La distribution des probabilités
+
+Si une pièce de monnaie n'est pas trafiquée, on peut accepter le fait
+que la probabilité d'obtenir le côté 'FACE' lors d'un lancer de cette
+pièce soit égale à 0.5. On a une chance sur deux d'obtenir ce côté. Si on
+lance plusieurs pièces, n = 5 par exemple, chaque pièce a une chance
+égale de tomber du côté 'FACE', et les résultats possibles pour une
+telle expérience seraient l'un ou l'autre de 0, 1, 2,3, 4 ou 5 FACES...
+Vérifions cela. Le code suivant répète 100 fois le lancer de 5 pièce de
+monnaie, et on comptabilise à chaque essai le nombre de FACES
+apparaissant:
+
+```{r 02-Chap2-35, tidy=TRUE, tidy.opts=list(width.cutoff=75)}
+
+res <- vector()    # Initialisation du vecteur des résultats
+nt <- 100          # Nombre d'essais
+No_Pieces <- 5     # Nombre de pièces
+set.seed(1876534) # Faire en sorte qu'on obtienne les mêmes résultats
+for(i in 1:nt){   # Répéter nt fois les 2 opérations suivantes
+  x <- CoinToss(No_Pieces,0.5) # lancer de 5 pièces
+  res[i] <- sum(x=="Face")     # calcul du nombre de FACEs
+}
+fr <- as.matrix(table(res)) # Production du tableau de fréquences
+pr <- fr[,1] / nt  # Fréquence relative (Probabilités)
+#
+# Production de la distribution de probabilités
+#
+tbl <- data.frame(sort(unique(res)),fr,pr)
+colnames(tbl) <- c("#Faces","Fréq","Prop")
+hist(res+.001,xlab="Nombre de Faces",ylab="Fréquences",main="Distribution du nombre de Faces\n en lançant 5 pièces de monnaie")
+```
+
+Ajoutons un élément à notre discussion: un tableau résumant la
+distribution que nous venons d'établir.
+
+```{r 02-Chap2-36, echo=FALSE}
+kable(tbl, booktabs=TRUE, caption="Distribution du nombre de Faces",row.names=FALSE) %>%
+  kable_styling(full_width = FALSE)
+
+```
+
+
+Du diagramme et du tableau obtenu, on note qu'on a plus de chance d'obtenir 2-3 FACEs en lançant 5 pièces de monnaie, qu'un nombre plus élevé ou inférieur. Mais les événements plus extrêmes ne sont pas exclus: il peut arriver que l'on obtienne aucune FACE, ou qu'on en obtienne 5. De tels résultats sont simplement plus rares, ou moins probables. 
+
+Reprenons l'expérience, mais en la répétant 100,000 fois! Pour permettre
+le changement rapide du nombre d'essais, une variable a été créée. Il
+vous suffira de changer sa valeur pour spécifier le nombre d'essais à
+effectuer:
+
+```{r 02-Chap2-37, tidy=TRUE, tidy.opts=list(width.cutoff=75)}
+set.seed(150752)
+res = vector()      # Initialisation du vecteur des résultats
+No_essais <- 100000  # Spécification du nombre d'essais à effectuer
+No_Pieces <- 5       # Nombre de Pièces
+for(i in 1:No_essais){
+  x <- CoinToss(No_Pieces,0.5)
+  res[i] <- sum(x=="Face")
+}
+fr <- as.matrix(table(res))
+pr <- fr[,1] / No_essais
+x <- sort(unique(res))
+tbl <- data.frame(x,fr,pr)
+espm <- sum(x*pr)      # Calcul de l'expérance mathématique 
+colnames(tbl) <- c("#Faces","Fréq","Prop")
+hist(res+.001,xlab="Nombre de Faces",ylab="Fréquences",main="Distribution de probabilités: 5 pièces")
+# Production du tableau de fréquence
+kable(tbl, booktabs=TRUE, caption="Distribution du nombre de Faces",row.names=FALSE) %>%
+  kable_styling(full_width = FALSE)
+```
+
+Pour répondre à une question telle que: '**Combien de fois obtenons-nous
+4 FACES ou PLUS, en lançant 5 pièces de monnaie non trafiquées**?', on
+pourrait simplement additionner les fréquences correspondant à x = 4 et
+x = 5. Ou on pourrait directement obtenir ce nombre à partir de
+l'ensemble des résultats obtenus. On utilisera ici l'opérateur logique
+'**\>=**', qui accorde une valeur '1' ou 'TRUE' si x (le nombre de
+FACES) est supérieur ou égal à l'argument de droite (4):
+
+```{r 02-Chap2-39}
+sum(res>=4) 
+
+```
+
+Connaissant le nombre de résultats qui nous intéressent (x = 4 ou x =
+5), on peut aisément calculer la probabilité recherchée. Puisque 100,000 expériences aléatoires ont été effectuées, il suffira de diviser ce nombre par le nombre total de résultats obtenus [**length(res)**], qui est égal à 100,000:
+
+```{r 02-Chap2-40}
+
+sum(res>=4)/length(res)
+```
+
+La distribution de probabilités que nous sommes maintenant en mesure de
+définir possède certaines caractéristiques importantes. D'une part, elle
+a une forme: les différents événements (axe horizontal) ne sont pas tous
+équiprobables. La forme peut être symétrique ou non, selon le cas.
+
+D'autre part, elle a une certaine étendue ou dispersion: dans le cas présent, les résultats s'étendent de 0 jusqu'à 5.
+
+Et finalement, elle a un centre, situé entre les deux valeurs extrêmes.
+Ce centre nous permettrait de répondre à une question telle que: 'En
+lançant 5 pièces de monnaie, combien de **FACEs** puis-je m'attendre d'obtenir, de manière générale. La forme nous indique que les résultats
+(nombre de FACEs) ne sont pas équiprobables. Quelle serait, alors, le
+résultats le plus probable? Le terme désignant cette caractéristique
+est: **espérance mathématique**. Mathématiquement, combien de FACEs
+peut-on espérer obtenir en lançant 5 pièces de monnaie? On sait que ce
+nombre est compris entre 0 et 5. On peut obtenir la probabilité de
+chacun de ces résultats. L'espérance mathématique est alors la somme du
+produit de la probabilité d'obtenir un résultat particulier et la valeur
+de ce résultat. En termes plus formels: $$E(X)=\sum_{X=0}^{5} XP(X)$$
+
+Si on considère la distribution de probabilités obtenue par simulation
+plus haut:
+
+```{r 02-Chap2-41, echo=FALSE}
+kable(tbl, booktabs=TRUE, caption="Distribution du nombre de Faces",row.names=FALSE) %>%
+  kable_styling(full_width = FALSE)
+
+cat("Expérance Mathématique = ",espm)
+```
+
+L'espérance mathématique de cette distribution, indiquée ci-dessus, est
+obtenue par:
+$$(0\cdot0.03222)+(1\cdot0.1573)+(2\cdot0.31181)+(3\cdot0.31423)+(4\cdot0.15401)+(5\cdot0.03043)$$
+Essentiellement, on peut s'attendre, en lançant 5 pièces de monnaie un
+nombre infini de fois, à obtenir 2.5 faces en moyenne. En examinant le
+graphique correspondant à cette simulation, on note en effet que les
+deux valeurs les plus fréquentes (probables) sont 2 et 3 FACEs.
+
+## La Loi des Grands Nombres
+
+Pour fins d'illustration, le code R suivant répète la simulation pour un
+nombre de lancers de 5 pièces de monnaie variant entre 100 et 100,000,
+par étape de 100. Le temps d'exécution de l'exercice est un peu long
+(quelques minutes), mais permet d'illustrer la Loi des Grands Nombres.
+L'événement d'intérêt est 'Nombre de FACEs supérieur à 3':
+
+```{r 02-Chap2-42, eval=FALSE}
+
+pr = vector()               # Vecteur des probabilités
+for (j in 100*c(1:1000)){   # Nombres d'essais : 100 - 100,000 / 100
+  succes <- 0
+  for (i in 1:j) {
+      x <- CoinToss(5, 0.5)
+     succes <- succes + (sum(x == "Face")>3)   # Nombre de Faces supérieur à 3?
+     }
+  pr[j/100] <- succes/j  # Probabilités empirique
+}
+plot(pr,type="l",xlab="Essais (blocs de 100)",ylab="Probabilité")
+
+```
+
+Le résultat est résumé dans le graphique suivant, dans lequel
+l'augmentation de la précision en fonction du nombre d'essais est
+manifeste.
+
+![Loi des Grands Nombres: p(x\>3) pour lancer de 5
+pièces](./images/Loi_Grands_Nombres.png)
+
+Cette simulation illustre la Loi des Grands Nombres, sur laquelle se
+fonde de nombreux concepts statistiques.
+
+### Que se passe-t'il lorsque le nombre de pièces augmente?
+
+Nous sommes donc en mesure de construire une distribution de
+probabilités lorsque l'expérience aléatoire consiste à lancer 5 pièces
+de monnaie, compabilisant le nombre de pièces tombant du côté FACE.
+Il serait intéressant de voir à quoi ressemble une distribution
+similaire, mais lorsque l'expérience aléatoire consiste à lancer 100
+pièces! Le code R suivant se charge du travail:
+
+```{r 02-Chap2-43, tidy=TRUE, tidy.opts=list(width.cutoff=75)}
+res = vector()      # Initialisation du vecteur des résultats
+No_essais  <-  100000  # Spécification du nombre d'essais à effectuer
+No_Pieces  <-  100     # Nombre de Pièces
+set.seed(150752)
+for(i in 1:No_essais){
+  x  <-  CoinToss(No_Pieces,0.5)
+  res[i]  <-  sum(x=="Face")
+}
+fr  <-  as.matrix(table(res))
+pr  <-  fr[,1] / No_essais
+x  <-  sort(unique(res))
+tbl  <-  data.frame(x,fr,pr)
+espm=sum(x*pr)
+colnames(tbl) = c("#Faces","Fréq","Prop")
+lbl <-  paste("Distribution de probabilités: ",No_Pieces," pièces")
+hist(res+.001,breaks="FD", xlab="Nombre de Faces",   ylab="Fréquences",main= lbl)
+
+```
+Pour le lancer de 1000 pièces, on obtient:
+
+```{r tidy=TRUE, tidy.opts=list(width.cutoff=75), echo=FALSE}
+res = vector()      # Initialisation du vecteur des résultats
+No_essais  <-  100000  # Spécification du nombre d'essais à effectuer
+No_Pieces  <-  1000     # Nombre de Pièces
+set.seed(150752)
+for(i in 1:No_essais){
+  x  <-  CoinToss(No_Pieces,0.5)
+  res[i]  <-  sum(x=="Face")
+}
+fr  <-  as.matrix(table(res))
+pr  <-  fr[,1] / No_essais
+x  <-  sort(unique(res))
+tbl  <-  data.frame(x,fr,pr)
+espm=sum(x*pr)
+colnames(tbl) = c("#Faces","Fréq","Prop")
+lbl <-  paste("Distribution de probabilités: ",No_Pieces," pièces")
+hist(res+.001,breaks="FD", xlab="Nombre de Faces",   ylab="Fréquences",main= lbl)
+
+```
+... et pour 10000 pièces:
+
+```{r tidy=TRUE, tidy.opts=list(width.cutoff=75), echo=FALSE}
+res = vector()      # Initialisation du vecteur des résultats
+No_essais  <-  100000  # Spécification du nombre d'essais à effectuer
+No_Pieces  <-  10000     # Nombre de Pièces
+set.seed(150752)
+for(i in 1:No_essais){
+  x  <-  CoinToss(No_Pieces,0.5)
+  res[i]  <-  sum(x=="Face")
+}
+fr  <-  as.matrix(table(res))
+pr  <-  fr[,1] / No_essais
+x  <-  sort(unique(res))
+tbl <-  data.frame(x,fr,pr)
+espm=sum(x*pr)
+colnames(tbl) = c("#Faces","Fréq","Prop")
+lbl <-  paste("Distribution de probabilités: ",No_Pieces," pièces")
+hist(res+.001,breaks="FD", xlab="Nombre de Faces",   ylab="Fréquences",main= lbl)
+
+```
+
+La forme de la distribution que l'on obtient dans ce cas est très
+caractéristique. Il s'agit d'une forme omniprésente dans l'univers
+statistique, et elle reviendra dans notre champs visuel fréquemment dans
+les chapitres suivants. La distribution est visiblement symétrique et
+s'étend en théorie de 0 au nombre de pièces lancées (100, 1000 et 10,000 FACES dans les trois derniers cas). Cependant, les probabilités
+associées aux nombres faibles et aux nombres élevés de FACEs sont très
+faibles de sorte que même après 100,000 lancers, aucun de ces événements
+n'est apparu. En conséquence, l'étendue effective de la distribution est plus
+restreinte que ce à quoi on peut s'attendre en théorie.
+
+Dans les exemples précédents, la probabilité associée aux événements PILE/FACE était égale à 0.5. Mais dans la réalité, pour différentes variables, cette probabilité peut prendre n'importe quelle valeur comprise entre 0 et 1. Par exemple, supposons qu'un traitement contre une certaine maladie est efficace à 90%. C'est dire que la probabilité pour un patient souffrant de cette maladie de guérir suite à l'application de ce traitement est $p=0.90$. En supposant que 1000 patients sont soumis à ce traitement, la distribution des probabilités des nombres de guérisons serait:
+
+```{r tidy=TRUE, tidy.opts=list(width.cutoff=75), echo=FALSE}
+res = vector()          # Initialisation du vecteur des résultats
+No_essais  <-  100000   # Spécification du nombre d'essais à effectuer
+No_Pieces  <-  1000     # Nombre de patients
+prob <- 0.90            # Probabilité de guérison
+set.seed(150752)
+for(i in 1:No_essais){
+  x  <-  CoinToss(No_Pieces,prob)
+  res[i]  <-  sum(x=="Pile")
+}
+fr  <-  as.matrix(table(res))
+pr  <-  fr[,1] / No_essais
+x  <-  sort(unique(res))
+tbl  <-  data.frame(x,fr,pr)
+espm=sum(x*pr)
+cat("Espérance mathématique = ",espm)
+colnames(tbl) = c("#Guérisons","Fréq","Prop")
+lbl <-  paste("Distribution de probabilités: ",No_Pieces," patients")
+hist(res+.001,breaks="FD", xlab="Nombre de Guérisons",   ylab="Fréquences",main= lbl)
+
+```
+On note que l'espérance mathématique de cette distribution est $E(Guérisons)=n\times p=1000\times 0.90\approx 900$.  
+
+Dans le monde réel, il existe de multiples exemples de variables ne possédant que deux attributs, analogue au lancer d'une pièce de monnaie. Nous avons mentionné la guérison ou non suite à un traitement. On peut ajouter le succès ou l'échec à un examen, l'admission ou non à un programme d'étude, etc. Dans ces cas, il est fréquent que la distribution de probabiités correspondante épouse les caractéristiques de celles présentées ci-dessus, et en conséquence, elles seront utilisées dans le processus de prise de décision dans un contexte de recherche, comme nous le verrons dans un chapitre ultérieur.
+
+
+## Exercice 5
+
+1.  Déterminez la distribution de fréquence des résultats (nombre de
+    FACES), lorsque le nombre de pièces de monnaie est n = 100, et que
+    les pièces ne sont pas trafiquées (soit p = 0.5)\
+2.  Comment pourriez-vous qualifier la distribution obtenue?
+3.  Quelle est la probabilité d'obtenir 43 faces ou moins?
+4.  Quelle est la probabilité d'obtenir entre 45 et 65 faces?
+5.  Obtenez la proportion des essais où on obtient plus de 65 FACES, en
+    utilisant le tableau de fréquences.
+6.  Obtenez cette proportion en comptabilisant cette proportion
+    directement des résultats de chaque essai.
+7.  Pour quelle proportion des essais obtient-on entre 65 et 85 FACES?
+8.  Sous quelle valeur de x (nombre de FACES) trouve-t'on 75% de la
+    distribution?\
+9.  Au-dessus de quelle valeur de x trouve-t'on 10% de la distribution?
+10. Quelles sont les limites à l'intérieur desquelles on retrouve les
+    95% centraux des résultats de lancers de ces 100 pièces de monnaie?
+
+## Le lancer de dés
+
+Le même cheminement que nous avons parcouru avec des pièces de monnaie
+peut être fait en considérant le lancer de dés, trafiqués ou non... La fonction **DiceRoll()** permet de simuler le lancer d'un dé. Par défaut, le dé est lancé 1
+seule fois (n=1) et il n'est pas trafiqué (chacune des 6 faces a une
+chance égale d'apparaître: **p=rep(1,6)**). Essayons-le une première
+fois, en simulant le lancer de 5 dés non trafiqués:
+
+```{r 02-Chap2-45}
+
+DiceRoll(5)
+
+```
+
+Comme nous l'avons fait dans le cas de pièces de monnaie, nous pouvons
+examiner comment les résultats varient d'une expérience à l'autre. Le
+code suivant nous permettra d'effectuer autant de lancers d'un dé que
+nécessaire, de manière à établir la distribution de fréquences des
+valeurs possibles dans cette situation. En lançant le dé 60 fois, on
+devrait s'attendre à obtenir 10 fois chacune des valeurs de 1 à 6, en
+supposant que le dé n'est pas truqué:
+
+```{r 02-Chap2-46, tidy=TRUE, tidy.opts=list(width.cutoff=75)}
+res = vector()       # Initialisation du vecteur des résultats
+No_essais = 60       # Spécification du nombre d'essais à effectuer
+res= DiceRoll(No_essais)
+ft = as.matrix(table(res))
+fr = ft/sum(ft)
+f = data.frame(sort(unique(res)),ft,fr)
+colnames(f)=c("Face","Fréq","Prop")
+
+barplot(height=f$Fréq,names=f$Face,xlab="Observations",ylab="Fréquences",main="Répartition de résultats des lancers d'un dé non truqué")
+
+kable(f, booktabs=TRUE, caption="Résultats du lancer d'un dé",row.names=FALSE) %>%
+  kable_styling(full_width = FALSE)
+
+```
+En examinant la distribution obtenue, peut-on affirmer que l'équiprobabilité des six résultats possibles est vérifiée? À première vue, on pourrait en douter, puisque les fréquences observées pour chacun des résultats ne sont pas toutes égale à ce à quoi on s'attend! Examinons plus en détail la distribution de probabilités associée au lancer d'un dé...
+
+## Exercice 6
+
+1.  Déterminez la distribution de fréquence des résultats observés en
+    lançant un dé à 100 reprises, supposant que le dé n'est pas truqué.
+
+2.  Comment pourriez-vous qualifier la distribution obtenue? A première
+    vue, seriez-vous porté à croire que le dé est truqué?
+
+3.  Répétez l'expérience en lançant le dé 300 fois, puis 1000 fois, et
+    enfin 10,000 fois. Avez-vous des raisons de croire que le dé est
+    truqué?
+
+    -   Pour cette portion de l'exercice, vous pouvez indiquer les
+        nombres d'essais désirés dans la premièe ligne du code suivant:
+
+```{r 02-Chap2-48, tidy=TRUE, tidy.opts=list(width.cutoff=75)}
+for (i in c(60,300,600,1000,6000,60000)){
+  res = vector()       # Initialisation du vecteur des résultats
+  res= DiceRoll(i)
+  ft = as.matrix(table(res))
+  ft = data.frame(sort(unique(res)),ft,ft/sum(ft))
+  colnames(ft)=c("Face","Fréq","Prop")
+  titl = paste("Répartition de résultats des lancers d'un dé\n (",i,"lancers)")
+  barplot(height=ft$Fréq,names=ft$Face,xlab="Observations",ylab="Fréquences",main=titl)
+}
+
+```
+
+4.  Quelle conclusion générale pourriez-vous tirer de ces expériences?
+5.  Exécutez le code R suivant afin de définir un dé trafiqué de manière
+    à ce que la probabilité d'obtenir une des faces du dé (1-6) soit
+    différente de celle typique d'un dé non truqué, et pour obtenir un
+    échantillon initial de 30 lancers de ce dé.
+
+```{r 02-Chap2-49, tidy=TRUE, tidy.opts=list(width.cutoff=75)}
+No_essais  <-  30
+p6 <- sample(c(rep(1.6667,5),1.6667+runif(1,-.7,.7)),6)
+res  <-  DiceRoll(No_essais,p=p6)
+ft  <-  as.matrix(table(res))
+ft  <-  data.frame(sort(unique(res)),ft,ft/sum(ft))
+colnames(ft) <- c("Face","Fréq","Prop")
+titl  <-  paste("Répartition de résultats des lancers d'un dé truqué\n pour ",No_essais,"lancers")
+barplot(height=ft$Fréq,names=ft$Face,xlab="Observations",ylab="Fréquences",main=titl)
+
+kable(ft, booktabs=TRUE, caption="Résultats du lancer d'un dé truqué",row.names=FALSE) %>%
+  kable_styling(full_width = FALSE)
+```
+
+-   Êtes-vous en mesure de conclure sans doute raisonnable que le dé a
+    été trafiqué, sur la base de ces données?
+-   Répétez l'expérience en modifiant le nombre d'essais graduellement:
+    60, 120, 300, 1,000, 3,000... À partir de quel moment auriez-vous
+    confiance en affirmant que le dé est truqué, sur la base des
+    observations?
+-   Pour quelle face le dé est-il trafiqué, et quelle est la probabilité
+    d'obtenir ce résultat, à 5 décimales près?
+
+## La somme de deux dés
+
+Considérons maintenant le lancer de deux dés. On s'intéresse à la somme
+des deux faces observées lors du lancer. On sait que la plus petite
+somme est 1+1 = 2, et que la plus grande est 6+6 = 12. Donc l'ensemble
+des résultats occupe l'étendue 2 à 12.
+
+Le code R suivant permet de simuler le lancer de deux dés et de fournir la somme des valeurs observées:
+
+```{r 02-Chap2-51}
+dice.roll <- sample(1:6, size = 2, replace = TRUE)
+dice.roll
+sum(dice.roll)
+
+```
+
+Tout ce que ce jeu de commandes fait, c'est de choisir 2 (**size=2**)
+nombres parmi 1-6 (**1:6**), avec replacement (**replace=TRUE**), et de
+calculer la somme des deux valeurs obtenues (**sum()**). On sait que
+cette somme sera comprise entre 2 et 12.
+
+Pour pouvoir répéter à volonté le code précédent sans que l'on ait à
+ré-inscrire ce code dans la console, on pourra créer une fonction.
+Jusqu'à maintenant, nous avons utilisé des fonctions pré-définies, mais
+il est bon de pouvoir écrire ses propres fonctions selon les besoins du
+moment. La définition d'une fonction permettant de lancer deux dés non
+truqués pourrait ressembler à ceci:
+
+```{r 02-Chap2-52}
+n.dice <- function(n = 2,p = rep(1,6), sumdice = TRUE){
+  dice <- sample(1:6, n, p, replace = TRUE)
+  if(sumdice){out <- sum(dice)}else{out <- dice}
+  return(out)
+}
+
+```
+
+Cette fonction, **n.dice**, accepte trois arguments:  
+
+  -*n* = nombre de dés (2 par défaut) 
+  -*p* = un vecteur déterminant la probabilité d'obtenir chacun des résultats (1/6 par défaut)  
+  -*sumdice* = valeur logique indiquant si la somme des dés doit être retournée (valeur par défaut). Dans le cas contraire (sumdice = FALSE), la liste des valeurs observées sur chaque dés est retournée. 
+
+Mettons notre fonction au travail:
+
+```{r 02-Chap2-53}
+# lancer de 2 dés non truqués, somme calculée
+n.dice()                  
+# lancer de 3 dés non truqués, somme calculée
+n.dice(3)                 
+# lancer de 2 dés truqués de manière à favoriser le '6', somme calculée
+n.dice(2,c(1,1,1,1,1,4))  
+# lancer de 5 dés non truqués, valeurs des dés affichées
+n.dice(5,sumdice=FALSE)
+
+
+```
+
+Tout semble fonctionner! Cette fonction nous permettra de simuler des expériences aléatoires permettant un plus grand nombre de résultats que dans les simulations précédentes.
+
+Pour répéter le lancer des dés *n* fois, on peut simplement utiliser
+la fonction **replicate**, qui nécessite deux arguments: le nombre de
+fois que l'on veut répéter l'opération, et l'opération à répéter:
+
+```{r 02-Chap2-54}
+
+x <- replicate(20, n.dice())
+
+```
+
+À présent, nous avons tout ce qui est nécessaire pour effectuer une
+simulation du lancer de deux dés ou plus. Simulons le lancer de 60 paires de
+dés, calculant la somme des dés pour chaque paire, pour finalement
+afficher le tableau de la distribution résultant de l'opération:
+
+```{r 02-Chap2-55}
+x  <-  replicate(20, n.dice())
+x
+#
+ft  <-  as.matrix(table(x))
+ft  <-  data.frame(sort(unique(x)),ft,ft/sum(ft))
+colnames(ft)=c("Somme","Fréq","Prop")
+kable(ft, booktabs=TRUE, caption="Résultats du lancer d'un dé truqué",row.names=FALSE) %>%
+  kable_styling(full_width = FALSE)
+```
+
+La distribution de fréquences résumée dans le tableau nous informe sur
+la probabilité d'obtenir chacun des résultats possibles, de 2 à 12.
+Graphiquement, on obtient:
+
+```{r 02-Chap2-56, tidy=TRUE, tidy.opts=list(width.cutoff=75)}
+titl  <-  paste("Répartition des résultats de lancers de deux dés\n (",50, "lancers)")
+barplot(height=ft$Fréq,names=ft$Somme,xlab="Observations",ylab="Fréquences",main=titl)
+
+```
+
+De ce diagramme, on constate que l'ensemble des sommes de deux dés
+couvre bien l'étendue 2 à 12. on note aussi que la probabilité
+ne semble pas égale pour chacune des sommes possibles: il semble plus
+probable, en lançant deux dés, d'obtenir des valeurs telles que 6, 7 ou
+8 que des valeurs plus élevées ou plus faibles.
+
+Augmentons le nombre de lancers de nos dés. Pour n = 500:
+
+```{r 02-Chap2-57, tidy=TRUE, tidy.opts=list(width.cutoff=75)}
+No_essais  <-  500   # Définition du nombre d'essais
+x  <-  replicate(No_essais, n.dice())
+#
+ft  <-  as.matrix(table(x))
+ft  <-  data.frame(sort(unique(x)),ft,ft/sum(ft))
+colnames(ft) <- c("Somme","Fréq","Prop")
+kable(ft, booktabs=TRUE, caption="Résultats du lancer de 2 dés",row.names=FALSE) %>%
+  kable_styling(full_width = FALSE)
+
+titl  <-  paste("Répartition des résultats de lancers de deux dés\n  (",No_essais,"lancers)")
+  barplot(height=ft$Fréq,names=ft$Face,xlab="Observations",ylab="Fréquences",main=titl, names.arg=ft$Somme)
+
+```
+
+Il semble que plus on augmente la taille de l'échantillon, plus on
+s'approche d'une distribution de forme triangulaire: les résultats ne
+sont pas equi-probables. Les petites sommes, comme les grandes, sont
+moins probables que les sommes intermédiaires.
+
+À ce stade, vous devriez avoir saisi qu'une probabilité peut être
+définie comme étant le nombre de 'succès' sur un très grand nombre
+d'essais. En mathématiques, on dira que la probabilité d'un événement est
+la proportion d'occurrence de cet événement pour un nombre **infini** d'expériences
+aléatoires. Pour nos besoins, examinons la distribution des sommes de
+deux dés pour 1,000,000 d'essais:
+
+```{r 02-Chap2-58, tidy=TRUE, tidy.opts=list(width.cutoff=75)}
+set.seed(1234567)
+No_essais  <-  1000000   # Définition du nombre d'essais
+x  <-  replicate(No_essais, n.dice())
+#
+ft  <-  as.matrix(table(x))
+ft  <-  data.frame(sort(unique(x)),ft,ft/sum(ft))
+colnames(ft) <- c("Somme","Fréq","Prop")
+kable(ft, booktabs=TRUE, caption="Résultats du lancer de deux dés",row.names=FALSE) %>%
+  kable_styling(full_width = FALSE)
+cat("Espérance Mathématique = ",sum(ft$Somme*ft$Prop))
+```
+
+On s'attend donc, en lançant deux dés un nombre infini de fois, à
+obtenir une somme égale à 7.
+
+```{r 02-Chap2-59, echo=FALSE}
+titl  <-  paste("Répartition des résultats de lancers de deux dés\n  (",No_essais,"lancers)")
+  barplot(height=ft$Fréq,names=ft$Face,xlab="Observations",ylab="Fréquences",main=titl, names.arg=ft$Somme)
+```
+
+On note ici que la distribution est très clairement définie. Elle est
+presque parfaitement symétrique, et les proportions observées pour
+chaque somme possible correspond presque parfaitement aux probabilités
+que plus tard on pourra obtenir de manière analytique (avec
+des'formules' qu'il n'est pas utile de présenter ici!).
+
+Comme on l'a fait dans l'exercice 4, on peut obtenir les probabilités
+associées à différentes zones de cette distribution. On a déjà vu
+qu'ayant un accès direct à l'ensemble des données, il suffit d'une
+opération de comparaison, ou opération logique pour obtenir réponses à
+nos questions. Par exemple, quelle est la probabilité d'obtenir une
+somme inférieure à 5:
+
+```{r 02-Chap2-60}
+sum(x < 5) / length(x)
+
+```
+De manière alternative et parfaitement équivalente, on peut obtenir cette probabilité en utilisant la fonction **mean()**. En effet, la moyenne d'un ensemble de valeurs logiques ('TRUE'/'FALSE', ou '1'/'0') est une proportion (ou probabilité!):
+
+```{r}
+mean(x < 5)
+```
+
+De la simulation précédente, le million de résultats se trouve dans la
+variable x. Le nombre d'essais est donné par la fonction **length(x)**,
+et le rapport de la somme des x inférieurs à 5, divisé par le nombre
+total d'essais nous donne la probabilité recherchée.
+
+## Exercice 8
+
+**NOTES**: - lorsqu'une question implique une condition **OU** une
+autre, l'opérateur est la barre verticale '|':
+
+```{r 02-Chap2-61}
+a = 5
+b = 10
+(a < 7) | (b > 12)  # Première condition VRAIE, seconde FAUSSE. Ensemble VRAI
+```
+
+-   lorsqu'une question implique une condition **ET** une autre,
+    l'opérateur est '&' :
+
+```{r 02-Chap2-62}
+a = 5
+b = 10
+(a < 7) & (b < 12)  # Les deux conditions sont VRAIES. Ensemble VRAI
+
+```
+
+-   La distribution utilisée ici est la suivante:
+
+```{r 02-Chap2-63, tidy=TRUE, tidy.opts=list(width.cutoff=75)}
+No_essais  <-  500   # Définition du nombre d'essais
+x  <-  replicate(No_essais, n.dice())
+#
+ft  <-  as.matrix(table(x))
+ft  <-  data.frame(sort(unique(x)),ft,ft/sum(ft))
+colnames(ft)=c("Somme","Fréq","Prop")
+kable(ft, booktabs=TRUE, caption="Résultats du lancer de 2 dés",row.names=FALSE) %>%
+  kable_styling(full_width = FALSE)
+
+titl  <-  paste("Répartition des résultats de lancers de deux dés\n  (",No_essais,"lancers)")
+  barplot(height=ft$Fréq,names=ft$Face,xlab="Observations",ylab="Fréquences",main=titl, names.arg=ft$Somme)
+
+```
+
+1.  En vous basant sur la dernière distribution obtenue suite à 500
+    lancers de deux dés, quelle serait la probabilité d'obtenir une
+    somme supérieure à 10?
+
+2.  Toujours en vous basant sur la distribution obtenue, quelle serait
+    la probabilité d'obtenir une somme supérieure à 10 ou inférieure à
+    5?
+
+3.  Quelle serait la probabilité d'obtenir une somme comprise entre 6 et
+    8?
+
+4.  Quelle est la probabilité d'obtenir au plus une somme égale à 6?
+
+5.  Quelle est la probabilité d'obtenir au moins une somme égale à 6?
+
+## Exercice 9
+
+1.  En utilisant la dernière distribution obtenue (1,000,000 d'essais),
+    quelle serait la probabilité d'obtenir une somme supérieure à 10?
+
+2.  Toujours en vous basant sur cette distribution, quelle serait la
+    probabilité d'obtenir une somme supérieure à 10 ou inférieure à 5?
+
+3.  Quelle serait la probabilité d'obtenir une somme comprise entre 6 et
+    8?
+
+4.  Quelle est la probabilité d'obtenir une somme inférieure ou égale à
+    6?
+
+5.  Quelle est la probabilité d'obtenir une somme supérieure ou égale à
+    6?
+
+6.  Comparez ces trois probabilités à celles obtenues dans l'exercice 3.
+    Quel ensemble de probabilités vous semble le plus précis?
+
+7.  En utilisant l'argument **sumdice=FALSE** dans l'appel de la fonction **n.dice()** pour obtenir la valeur des dés plutôt que leur somme, calculez la
+probabilité que survienne un double, soit (1,1), (2,2), ..., (6,6))?
+
+8.  Quelle serait la probabilité qu'au moins un des deux dés soit un
+    '6'?
+
+9.  Il existe un vieux jeu de hasard italien appelé **Passadieci**, dans
+    lequel le but est d'obtenir au moins 11 lorsque trois dés à six
+    faces sont lancés.
+
+a.  Utilisez la fonction **n.dice()** et la fonction **replicate()** que nous
+    avons utilisé plus haut pour simuler 100,000 réplications de ce jeu
+    et sauvegardez les résultats dans un vecteur appelé **passadieci**.
+
+-   Utilisez ce vecteur pour répondre aux questions suivantes :
+
+    b.  Quelle est la probabilité de gagner à ce jeu (ie obtenir une
+        somme supérieure ou égale à 11) ?
+    c.  Qu'est-ce qui est le plus probable en lançant trois dés :
+        obtenir 11 ou obtenir 12 ?
+    d.  Quelle est la probabilité d'obtenir une somme inférieure ou
+        égale à 7 ou supérieure ou égale à 15, toujours en lançant nos 3
+        dés?
+    e.  Tracez un graphique pour illustrer l'ensemble de la distribution
+        des probabilités.
+
+10. Parmi les deux situations suivantes, laquelle est la plus probable?
+
+    1.  obtenir au moins un 6 en lançant 4 fois un seul dé à six faces.\
+    2.  obtenir au moins une paire de 6 en lançant 24 fois deux dés à
+        six faces.
+
+```{=html}
+<!-- -->
+```
+a.  Vous devez donc effectuer deux simulations de manière à déterminer
+
+b.  la probabilité d'obtenir au moins un '6' en lançant 4 dés. La
+    fonction suivante pourrait s'avérer utile, indiquant s'il est vrai qu'on obtient au moins un '6' en lançant 4 dés:
+
+```{r 02-Chap2-66, eval=FALSE}
+SituationA <- function(){
+  res <- n.dice(4,sumdice=FALSE)
+  out1 <- sum(res == 6) > 0
+  return(out1)
+}
+
+```
+
+c.  La probabilité d'obtenir au moins une paire de 6 en lançant 24 fois
+    deux dés. La fonction suivante devrait pouvoir faire le travail, indiquant s'il est vrai qu'une expérience aléatoire de ce type produit l'événement recherché:
+
+```{r 02-Chap2-67, eval=FALSE}
+SituationB <- function(){ 
+  x <- replicate(24,n.dice(2,sumdice=TRUE))   # Deux dés sont lancés 24 fois
+  res2 <- sum(x) > 0                          # Condition recherchée
+  return(res2)
+}
+
+```
+
+d.  Pour répondre à la question, il suffira d'utiliser la fonction
+    **replicate()** pour chacune de ces deux fonctions pour établir la
+    distribution de probabilités correspondant aux deux situations. On
+    pourra alors déterminer laquelle des situations est la plus
+    probable! Vous prenez la relève?
+
+## Urnes: Plus que 2 catégories
+
+Lorsqu'on aborde l'étude des probabilités, l'utilisation d'exemples
+impliquant une urne contenant des balles de différentes couleurs est
+fréquente. Supposons une urne contenant 12 balles rouges, 18 balles
+bleues et 10 balles vertes, pour un total de 40 balles. On peut dès lors
+définir plusieurs problèmes dont les solutions ne seront jamais en
+contradiction avec la définition que nous avons donnée d'une
+probabilité.
+
+-   Quelle est la probabilité, en tirant de l'urne 5 balles, d'obtenir
+    uniquement des balles rouges?
+
+    -   Solution:
+
+        -   Puisqu'il y a 12 balles rouges dans l'urne, le nombre de
+            combinaisons résultant en 5 balles rouges sera:
+            $$C(12,5) =   \frac{12!}{5!(12-5)!} = \frac{12\cdot...\cdot8}{5\cdot4\cdot3\cdot2\cdot1} = nE =792$$
+
+        -   Le nombre total de combinaisons de 5 balles tirées de
+            l'ensemble des 40 balles que contient l'urne est:
+            $$C(40,5) =     \frac{40!}{5!(40-5)!} = nS = 658,008$$
+
+        -   La probabilité recherchée est donc:
+            $$\frac{nE}{nS} = \frac{792}{658,008} = 0.0012$$
+
+Sous R, on peut définir des fonctions susceptibles de nous fournir une
+visualisation de ce type de problème. Par exemple, supposons une urne
+avec une boule de chacune des couleurs rouge, bleue et noire. Si vous
+choisissez deux boules **avec remise**, il y a $3^2$ permutations :
+
+    {rouge, rouge}, {rouge, bleu}, {rouge, noir}, 
+    {bleu, rouge},  {bleu, bleu},  {bleu, noir}, 
+    {noir, rouge},  {noir, bleu},  {noir, noir}. 
+
+Sous R, on peut obtenir ce résultat en utilisant la fonction
+**permutations()**, incluse dans la librairie **arrangements**. Cette
+fonction accepte 3 arguments: le vecteur contenant les éléments à permuter, le
+nombre d'éléments à sélectionner, et un indicateur logique indiquant la
+remise ou non:
+
+```{r 02-Chap2-68}
+
+  library(arrangements)             # Chargement de la librairie
+  
+  x <- c("rouge", "bleu", "vert")   # Définition de l'urne
+  # Choisir 2 boules avec remise, et dresser la liste des permutations
+  permutations(x,2,replace=TRUE)
+```
+
+À partir de cette liste, il suffit de définir l'événement recherché, en
+déterminer la fréquence, pour ensuite obtenir sa probabilité. Par
+exemple, quelle est la probabilité d'obtenir une boule rouge et une
+boule verte?
+
+```{r 02-Chap2-69, tidy=TRUE, tidy.opts=list(arrow=TRUE, indent=2)}
+library(arrangements)
+x <- c('rouge', 'bleu', 'vert')
+res  <-  permutations(x,2,replace=TRUE)
+prob  <-  sum((res[,1]=="rouge" & res[,2]=="vert")|(res[,1]=="vert" & res[,2]=="rouge")) / length(x)^2
+cat("Probabilité = ",prob)
+```
+
+La fonction **polyUrn()**, de la librairie **isteahMAT104** permet d'effectuer ce type de calculs de manière plus générale, par simulation. Les arguments sont: *n* = nombre de balles à sélectionner, *r* = nombre de balles rouges, *b* = nombre de balles bleues,
+et r = nombre de balles vertes; et le dernier argument, repl a une
+valeur logique déterminant si l'échantillonnage se fait avec ou sans
+remise. La valeur retournée est un vecteur composé des nombres de balles
+rouges, vertes et bleueus, respectivement, dans un échantillon de n
+balles.
+
+Pour illustrer, exécutons cette fonction en utilisant l'exemple
+précédent, pour tirer 5 balles rouges en sélectionnant 5 balles au hasard, d'une urne contenant 10R, 18B et 10G
+balles:
+
+```{r 02-Chap2-71}
+x = polyUrn(5, r=12, b=18, g=10)
+x
+
+```
+
+Le premier élément du vecteur sortant est le nombre de balles rouges; le
+second élément est le nombre de balles bleues; et le dernier élément est
+le nombre de balles vertes. On peut utiliser cette fonction de manière
+répétitive un grand nombre de fois pour permettre une estimation des
+probabilités recherchées.
+
+```{r 02-Chap2-72, tidy=TRUE, tidy.opts=list(arrow=TRUE, indent=2)}
+ndraw <- 100000  # Nombre d'expériences aléatoires (tirage de balles)
+n <- 5         # Nombre de balles tirées lors d'une expérience
+r <- 12        # Nombre de balles rouges
+b <- 18        # Nombre de balles bleues
+g <- 10        # Nombre de balles vertes
+E <- c(5,0,0)  # Événement recherché (r = 5, b = 0, g = 0)
+repl <- FALSE
+succes <- 0    # Initialisation des variables servant au comptage
+i <- 0         #
+repeat{
+  draw <- polyUrn(n,r,b,g,repl)    # Exécution d'une expérience
+  i <- i + 1
+  if(sum(draw==E)==3){succes=succes+1}    # Est-ce un 'succès'?
+  if (i == ndraw){break}                  # Exercice complété?
+}
+cat("Probabilité = ",succes/ndraw)
+```
+
+Ce résultat n'est pas très éloigné de ce qu'on a obtenu en utilisant une
+approche classique!
+
+Relancez le code R précédent en variant le nombre d'expériences. Quelle
+probabiité obtenez-vous en effectuant 1000, 1,0000, 100,000, 1 million,
+ou même 10 millions d'expériences, si vous en avez le temps! Quelle
+conclusion tirez-vous de cet exercice?
+
+## Exercice 10
+
+Pour les exercices suivants, utilisez l'approche classique et la
+simulation pour obtenir les réponses:
+
+1.  Sous le balcon de Juliette, Roméo cueille des fleurs pour lui lancer
+    un bouquet. Le parterre de roses (la fleur) comporte 4 fleurs
+    rouges, 3 fleurs jaunes et 5 fleurs roses. Roméo procédant dans
+    l'obscurité, il ne peut pas contrôler la couleur des fleurs qui est
+    donc considérée comme aléatoire.
+
+-   Si Roméo cueille trois fleurs, quelle est la probabilité qu'il
+    obtienne trois fleurs de couleur rose ?
+
+-   Si Roméo cueille trois fleurs, quelle est la probabilité qu'il
+    obtienne une fleur de chaque couleur ?
+
+-   Si Roméo cueille quatre fleurs, quelle est la probabilité qu'il
+    n'obtienne aucune fleur jaune ?
+
+-   Si Roméo cueille deux fleurs, quelle est la probabilité qu'il
+    obtienne des fleurs de couleurs différentes ?
+
+2.  En utilisant la fonction polyUrn() et le code défini plus haut,
+    étudiez une situation dans laquelle l'urne contient 15 balles
+    rouges, 7 balles bleues et 20 balles vertes. Répétez les exercices
+    en variant le nombre d'expériences aléatoires.
+
+**NOTE**: Pour ces exercices, il vous sera nécessaire d'éditer le code
+de manière à définir le contexte de l'expérience (nombre de balles à
+échantillonner, nombre d'expériences, nombres de balles pour chaque
+couleur), et l'événement recherché. Cela se fait aux lignes suivantes:
+
+```{r 02-Chap2-73, eval=FALSE}
+
+ndraw=100000  # Nombre d'expériences aléatoires (tirage de balles)
+n <- 5         # Nombre de balles tirées lors d'une expérience
+r <- 12        # Nombre de balles rouges
+b <- 18        # Nombre de balles bleues
+g <- 10        # Nombre de balles vertes
+E <- c(5,0,0)  # Événement recherché (r = 5, b = 0, g = 0)
+
+```
+
+-   Quelle est la probabilité, en tirant 10 balles, que cet échantillon
+    soit composé de 3 balles rouges, 4 balles bleues et 3 balles vertes?
+-   Quelle est la probabilité, en tirant 10 balles, que cet échantillon
+    soit composé de 2 balles rouges, d'aucune balle bleue et de 8 balles
+    vertes?
+-   Quelle est la probabilité qu'un échantillon de 12 balles ne soit
+    composé que de balles vertes?
+
+3.  De la même manière qu'en (2), refaites l'examen des probabilités
+    obtenues en (1), sous le balcon de Juliette...
+
+## Simulation de jeux de cartes
+
+Les jeux de cartes sont, avec les lancers de pièces de monnaie et de
+dés, des outils privilégiés pour l'apprentissage des principes de base
+des probabilités. Pour faciliter leur utilisation dans cette
+présentation, utilisons la fonction **BlackJack()** de la librairie **isteahMAT104**. Cette fonction permet de générer un certain nombre de mains (n = 100 par défaut) de 3 cartes. La sortie est la somme des 3 cartes calculée de la manière suivante:
+
+-   Cartes 2 - 9: valeur nominale
+-   Cartes 10, Valet, Reine et Roi: 10
+-   As: Si la somme des deux autres cartes est supérieure à 11, l'as
+    vaut 1; dans le cas contraire, il vaut 11.
+
+Les librairies **dplyr** et **tidyr** sont requises au préalable.
+
+Quelle est la probabilité d'obtenir une somme égale à 21 en tirant des
+mains 3 cartes sélectionnées au hasard, d'un jeu de cartes standard, et
+la somme étant calculée suivant la description donnée plus haut? Pour
+répondre à cette question, tirons 1,000 mains de 3 cartes:
+
+```{r 02-Chap2-75}
+library(dplyr)
+library(tidyr)
+
+n <- 1000  # Nombre de mains à tirer
+x <- BlackJack(n)
+cat("Probabilité = ",sum(x==21)/n)
+    
+```
+
+## Exercice 11:
+
+1.  Utilisez la fonction **BlackJack()** afin de déterminer les
+    probabilités:
+
+```{=html}
+<!-- -->
+```
+a.  d'obtenir une somme supérieure à 18.
+b.  d'obtenir une somme inférieure à 7.
+c.  une somme comprise entre 10 et 14.
+
+## Deux Définitions d'une Probabilité
+
+Dans ce document, deux définitions distinctes du terme PROBABILITÉ ont
+été mises de l'avant:
+
+1.  **Définition classique**: Nombre d'événements favorables (résultats
+    d'une épreuve dont on veut déterminer la fréquence relative), **nE**
+    sur le nombre total d'événements possibles (nombre d'éléments dans
+    l'espace échantillonnal), **nS**
+2.  **Définition fréquentiste**: En répétant une épreuve un GRAND nombre
+    de fois (N) et en notant le résultat de l'épreuve à chaque occasion,
+    on obtient une approximation de P(E) en divisant le nombre de
+    résultats favorables (nE) par le nombre d'épreuves (N). Cette
+    définition se fonde sur la loi des Grands Nombres:
+    $$P(E)=\displaystyle \lim_{N \to \infty} \frac{nE}{N}$$ Lorsque le
+    nombre d'expériences aléatoires tend vers l'infini, la probabilité
+    d'un événement donné est égale au nombre d'occurrence d'un événement
+    particulier, divisé par le nombre d'expérience.
+
+Cette dernière définition nous conviendra dans un très grand nombre de
+situations qu'on examinera dans le futur. Mais il faut aussi mentionner
+une troisième définition qui réfère à une approche distincte de l'étude
+des probabilités et de l'inférence statistique...
+
+3.  **Probabilité subjective**: Lorsqu'on ne dispose que peu ou pas de
+    données concernant les résultats d'une expérience aléatoire, on
+    pourra proposer une probabilité subjective, sur la base d'intuition,
+    d'informations partielles ou de toute autre information. On obtient
+    une probabilité exprimant notre de degré de croyance qu'un événement
+    particulier va se produire. Cette probabilité peut varier d'un
+    individu à l'autre, selon les informations dont chacun dispose. Par
+    exemple, d'après la pression atmosphérique présente, le degré
+    d'humidité présent, et la présence de cumulo-nimbus dans le ciel, il
+    y a 60% de chance qu'il y ait de la pluie avant la fin de la
+    journée... La probabilité n'est plus basée sur le nombre
+    d'événements possibles, mais sur l'information dont on dispose pour
+    l'évaluer. Et cette évaluation change en fonction de nouvelles
+    informations s'ajoutant aux anciennes. Cette définition de la
+    probabilité est propre aux méthodes inférentielles Bayesiennes.
+
+## Approche analytique: la distribution binômiale
+
+Jusqu'à maintenant, nous avons considéré des expériences aléatoires dont
+les résultats étaient des événements discrets: un certain nombre de
+pièces de monnaie tombant sur le côté FACE, une valeur comprise entre 1
+et 6 observée en lançant un dé, etc. Dans plusieurs cas, il était facile
+d'obtenir la probabilité qu'un événement survienne: la probabilité
+d'obtenir FACE en lançant une pièce de monnaie est 0.5, en lançant 2
+pièces de monnaie, la probabilité d'obtenir 2 FACES est 0.5x0.5 = 0.25
+(on applique ici la règle de multiplication des probabilités
+d'événements indépendants); en lançant un dé, la probabilité d'obtenir
+un 6 est 1/6, et la probabilité d'obtenir un 5 OU un 6 est 1/6+1/6 = 2/6
+(on applique ici la règle d'addition des probabilités d'événements
+mutuellement exclusifs). Nous avons aussi utilisé la simulation afin
+d'obtenir des distributions de probabiités à partir desquelles on
+pouvait sans trop de difficulté obtenir les probabilités recherchées.
+Une troisième approche existe, pour obtenir des réponses analogues: la
+définition de **distributions théoriques**.
+
+Dans le cas des situations que nous avons étudiées jusqu'à maintenant,
+situations impliquant des événements discrets dont la probabilité
+d'occurrence est invariante d'un essai à l'autre, la distribution
+théorique appropriée est la distribution **binômiale**. Cette
+distribution permet d'obtenir les probabilités de tout événement de ce
+type, de manière analytique. Sous condition que certains postulats sont
+respectés, les probabilités sont en effet données par l'expression
+suivante:
+$$f(x|n,p) = \frac{n!}{x!(n-x)!}\cdot p^x \cdot (1-p)^{n-x} = {{n}\choose{x}} \cdot p^x \cdot (1-p)^{n-x}$$
+Croyez-le ou non, cette expression est simplement un rapport entre le
+nombre de 'succès' divisé par le nombre total d'événements possibles.
+Donc aucune différence par rapport aux définitions présentées
+antérieurement. 
+
+### Lancers de pièces de monnaie et distribution binômiale
+
+En reprenant l'exemple du lancer de 5 pièces de monnaie,
+le résultat des opérations décrites par cette équation se lisent: 'En
+lançant un nombre infini de fois *n*=5 pièces de monnaie non truquées
+(*p*=0.5), la probabilité d'obtenir *x* FACEs est égale à...'. En appliquant cette équation à chacun des résultats possibles au lancer de 5 pièces, on obtient:
+
+
+
+$$f(0|5,0.5) = \frac{5!}{0!(5-0)!}\times 0.5^0 \times (1-0.5)^{5-0} = 0.03125 $$
+$$f(1|5,0.5) = \frac{5!}{1!(5-1)!}\times 0.5^1 \times (1-0.5)^{5-1} = 0.15625 $$
+$$f(2|5,0.5) = \frac{5!}{2!(5-2)!}\times 0.5^2 \times (1-0.5)^{5-2} = 0.31250 $$
+$$f(3|5,0.5) = \frac{5!}{3!(5-3)!}\times 0.5^3 \times (1-0.5)^{5-3} = 0.31250 $$
+$$f(4|5,0.5) = \frac{5!}{4!(5-4)!}\times 0.5^4 \times (1-0.5)^{5-4} = 0.15625 $$
+$$f(5|5,0.5) = \frac{5!}{5!(5-5)!}\times 0.5^5 \times (1-0.5)^{5-5} = 0.03125 $$
+
+Ces résultats est presqu'identiques à ceux obtenus par simulation dans la section 2.13:
+
+```{r echo=FALSE}
+res <- vector() # Initialisation du vecteur des résultats
+nt <- 1000000    # Nombre d'essais
+No_Pieces <- 5  # Nombre de pièces
+set.seed(1876534)  # Faire en sorte qu'on obtienne les mêmes résultats
+for (i in 1:nt) {
+    # Répéter nt fois les 2 opérations suivantes
+    x <- CoinToss(No_Pieces, 0.5)  # lancer de 5 pièces
+    res[i] <- sum(x == "Face")  # calcul du nombre de FACEs
+}
+fr <- as.matrix(table(res))  # Production du tableau de fréquences
+pr <- fr[, 1]/nt  # Fréquence relative (Probabilités)
+# Production de la distribution de probabilités
+X <- sort(unique(res))
+tbl <- data.frame(X, pr)
+kable(tbl, booktabs=TRUE, caption="Distribution de probabilités",row.names=FALSE) %>%
+  kable_styling(full_width = FALSE)
+```
+
+Notons que sous R, on peut obtenir ces probabilités en utilisant la fonction
+**dbinom(x, size, prob)**. Les arguments de cette fonction sont:
+  - x : un nombre ou un vecteur de nombre représentant les résultats d'une expérience binômiale (eg lancer de pièces)
+  - size : nombre d'items (eg pièces)
+  - prob : probabilité d'un succes
+  
+par exemple, on obtiendra l'ensemble de la distribution avec:
+
+```{r 02-Chap2-76}
+dbinom(x=c(0:5),size=5,prob=0.5) # P(0-5 FACES en 5 lancers, p=0.5)
+
+```
+La fonction **pbinom(q, size, prob, lower.tail=TRUE)** s'ajoute à la précédente en permettant de déterminer les quantiles de la distribution. Les arguments additionnels sont:
+  - q : résultat ou vecteur de résultats représentant des quantiles
+  - lower.tail : valeur booléenne. TRUE (par défaut) = distribution cumulative partant de l'extrémité inférieure; FALSE = distribution cumulative partant de l'extrémité supérieure
+  
+Par exemple, on obtiendra la distribution cumulative en lançant la commande:
+
+```{r}
+pbinom(0:5, 5, 0.5, lower.tail = TRUE)
+```
+
+La fonction **qbinom(p, size, lower.tail=TRUE)** permet l'opération inverse. On détermine la valeur de X sous laquelle on retrouve une certaine proportion de la distribution. L'argument **p** est une probabilité ou un vecteur de probabilités pour lesquelles on recherche une valeur de X. Par exemple, sous quel nombre de FACEs retrouve-t'on 50% et 75% de la distribution:
+```{r}
+qbinom(c(0.5,0.75), 5, 0.5, lower.tail = TRUE)
+```
+50% de la distribution se trouve donc sous X = 2, alors que 75% de cette distribution se trouve sous X = 3.
+  
+Finalement, la fonction **rbinom(n,size,prob)** est également disponible pour
+générer des données binômiales aléatoires. Par exemple, simulons le lancer de 25 pièces de monnaie non truquées, 5000 fois:
+
+```{r}
+x <- rbinom(5000,25,0.5)
+hist(x, breaks="FD",main="Distribution Binômiale")
+```
+
+La distribution binômiale n'est qu'une des nombreuses distributions de
+probabilités applicables en fonction des différents types de variables
+aléatoires. Ces distributions sont dérivées de manière analytique plutôt
+que par simulation, et représentent les probabilités théoriques que l'on
+obtiendrait pour un nombre infini d'exécutions d'une expérience
+aléatoire. Les paragraphes suivants présentent quelques-unes de ces distributions
+
+### La distribution multinômiale
+
+La distribution binômiale, présentée dans la section précédente, s'applique à des situations où les données sont binaires: elles se présentent en deux catégories mutuellement exclusives. Dans beaucoup de situations, par contre, on est en présence de données réparties en plusieurs catégories, et comme c'était le cas pour des données binômiales, il est utile d'en connaître la distribution.
+
+Le lancer de dés que nous avons étudié précédemment est un exemple d'expérience aléatoire donnant lieu à des données multinômiales. En effet, en lançant un dé, six résultats sont possibles. Et en lançant un certain nombre de dés, on pourra s'intéresser à la probabilité d'obtenir une certaine configuration de valeurs observée sur ces dés.
+
+Supposons un dé truqué de manière à ce que les probabilités d'obtenir {1, 2, 3, 4, 5, 6} sont respectivement {0.3, 0.2, 0.1, 0.1, 0.1, 0.2}. Considérons une expérience aléatoire consistant à lancer ce ce dé 10 fois. Pour cette séquence de 10 lancers, on note la fréquence d'apparition de chacune des valeurs affichées sur le dé, Quelle est la probabilité d'obtenir, sur 10 lancers, 2x1, 2x2, 2x3, 1x4, 1x5, 2x6?
+
+Nous avons déjà eu l'occasion de simuler des distributions de probabilités pour des données multinômiales (lancers de dés). Des ces distributions, nous avons pu obtenir les probabilités de différents événements en comptabilisant le nombre d'occurrence de ces événements, divisé par le nombre d'essais. Elles sont obtenues de manière empirique, et en accord avec la Loi des Grands Nombres, pour un nombre infini d'essais, on obtient une valeur égale à la probabilité théorique. Et cette dernière s'obtient par la fonction suivante:
+
+$$P(X_1=x_1,...,X_k=x_k)=\left[\frac{n!}{x_1!...x_k!}\right]p_1^{x_1} ...p_k^{x_k}$$
+Si on applique cette fonction pour trouver réponse à la question posée, on trouve:
+
+$$P([1]=2,[2]=2,[3]=2,[4]=1,[5]=1,[6]=2)=\left[\frac{10!}{2!2!2!1!1!2!}\right](0.3)^2(0.2)^2(0.1)^2(0.1)^1(0.1)^1(0.2)^2=0.0033$$
+Sous R, la fonction **dmultinom()** permet d'obtenir ce résultat:
+```{r}
+x <- c(2,2,2,1,1,2)                     # événement recherché
+p <- c(0.3, 0.2, 0.1, 0.1, 0.1, 0.2)   # probabilités
+dmultinom(x,size = 10,prob=p)
+```
+Vérifions ce résultat par simulation. :
+
+```{r}
+ndraw <- 100000  # Nombre d'expériences aléatoires (lancers de dés)
+p <- c(0.3, 0.2, 0.1, 0.1, 0.1, 0.2)
+obj <- c(2,2,2,1,1,2)
+draw <- t(replicate(ndraw,sample(1:6,10,prob=p,replace=TRUE)))
+rtbl <- Rfast::rowTabulate(draw)
+succes <- 0      
+for(i in 1:ndraw){
+  succes <- succes + (sum(rtbl[i, ]==obj)==6)
+}
+cat("Probabilité = ",succes/ndraw)
+
+```
+
+La probabilité obtenue par simulation est raisonnablement rapprochée de la probabilité théorique, comme on peut s'y attendre.
+
+Sous R, la fonction **rmultinom()** permet de générer des données suivant la distribution multinômiale. Les arguments sont:
+  - b : le nombre de vecteurs aléatoires à générer. La longueur de ce vecteur sera égale au nombre de résultats possibles lors d'une expérience aléatoire.
+  - size : nombre d'items à répartir dans les *k* catégories de la variable multinômiale
+  - prob : vecteur des probabilités associées aux résultats possibles
+  
+Par exemple:
+
+```{r}
+x <- rmultinom(20,50,prob=c(0.3,0.2,0.4,0.2))
+t(x)
+```
+On note que le nombre de catégories est dicté par la longueur du vecteur **prob**. La somme de chacun des vecteurs est égale à **size** (50 dans le cas présent), et les fréquences observées réflètent les probabilités suggérées dans **prob**.
+
+
+Un exemple tiré du monde réel concerne la répartition des groupes sanguins dans la population. Le tableau suivant résume cette répartition:
+
+Groupe | O | A | B | AB
+-------|---|---|---|---
+P      |0.44|0.42|0.10|0.04
+-------|---|---|---|---
+
+Si on tire un échantillon de 10 sujets de la population, quelle est la probabilité d'obtenir 6 sujets du groupe O, 2 du groupe A, 1 du groupe B, et 1 du groupe AB?
+
+En théorie, on peut s'attendre à obtenir un tel résultat avec une probabilité de:
+
+$$P(O=6,A=2,B=1,AB=1)=\left[\frac{10!}{6!2!1!1!}\right](0.44)^6(0.42)^2(0.10)^1(0.04)^1=0.0129$$
+
+Par simulation, on obtient:
+
+```{r}
+ndraw <- 100000  # Nombre d'expériences aléatoires (lancers de dés)
+p <- c(0.44, 0.42, 0.10, 0.04)
+obj <- c(6,2,1,1)
+draw <- t(rmultinom(ndraw,10,prob=p))
+succes <-sum(rowSums(t(apply(draw,1,function(x) x==obj)))==4)
+cat("Probabilité = ",succes/ndraw)
+```
+
+Encore une fois, la probabilité obtenue empiriquement est très rapprochée de celle obtenue de manière analytique.
+
+
+### La distribution Hypergéométrique
+
+Les lois binômiale et multinômiale exigent que la probabilité d’un ‘succès’ soit constante d’un essai à l’autre. Elle ne peut donc pas s’appliquer si cette condition n’est pas respectée! La distribution hypergéométrique, pour sa part, comble le vide laisser par ces dernières distributions.
+
+Par exemple, la condition d'équiprobabilité des événements au fil des essais ne serait pas respectée dans une situation où on tire une carte d’un jeu de cartes standard, **sans remise**, le résultat recherché étant une carte de couleur ROUGE.  La probabilité d’un ‘succès’ est 26/52 au départ, puisqu'il y a 26 cartes rouges dans une jeu de 52 cartes. 
+Si on replace la carte avant d’en tirer une autre, la probabilité demeure inchangée… et la loi binômiale peut être utilisée. Mais si la carte n’est pas replacée dans le jeu, la probabilité d’obtenir une carte rouge devient 26/51 si la première carte est NOIRE, et 25/51 si elle est ROUGE. La probabilité d'un 'succès' (tirer une carte rouge) change d'un essai à l'autre, et nous avons besoin de la distribution hypergéométrique pour résoudre nos problèmes de calcul de probabilités.
+
+La Loi hypergéométrique est définie par:
+$$P(X)=\frac{{C_X^S}{C_{n-X}^{N-S}}}{C_n^N}$$
+Dans cette équation, **N** représente la taille de la population, ou le nombre total d'éléments parmi lesquels on sera amené à effectuer une sélection aléatoire; **X** représente ne nombre de 'succès' observés au niveau de l'échantillon (il s'agit d'un nombre entier); **S** représente le nombre de 'succès' au niveau de la population; et **n** représente la taille de l'échantillon (nombre d'essais). Un exemple concret permettra de mieux comprendre la situation.
+
+Supposons n cabinet d’aide juridique regroupant 50 avocats dont 40 détiennent une maîtrise en Droit, et 10 détiennent un Doctorat. On doit former un groupe de travail de 5 individus qui a pour tâche de conseiller le gouvernement sur la constitutionnalité d’un projet de loi. Quelle est la probabilité que 4 des 5 avocats sélectionnés détiennent une maîtrise? 
+  
+Ici, on pose:
+  - **N** = 50 (nombre total d'avocats parmi lesquels la sélection du comité se fera)
+  - **S** = 40 (nombre d'avocats détenant une maîtrise en Droit)
+  - **n** = 5  (taille du comité que l'on doit former)
+  - **X** = 4  (nombre d'avocats choisis qui détiennent une maîtrise)
+  
+La probabilité recherchée, utilisant la fonction hypergéométrique, est:
+$$P(4)=\frac{{C_4^{40}}{C_{5-4}^{50-{40}}}}{C_5^{50}}=\frac{{C_4^{40}}{C_{1}^{10}}}{C_5^{50}}$$
+Sous R, on obtient:
+```{r}
+cat("P(4) = ",(choose(40,4)*choose(10,1))/choose(50,5))
+```
+Pour simplifier le travail, nous disposons d'un ensemble de fonctions permettant non seulement la détermination de probabilités, mais aussi la détermination de quantiles, de la densité et de la génération de nombres aléatoires. En utilisant le contexte d'une urne contenant des balles rouges et des balles vertes, ces fonctions et leurs arguments sont les suivants:
+  
+  - **dhyper(x, m, n, k)** : densité - Probabilité de X
+  - **phyper(q, m, n, k, lower.tail = TRUE)** : probabilités cumulatives
+  - **qhyper(p, m, n, k, lower.tail = TRUE)** : quantiles
+  - **rhyper(nn, m, n, k)** : génération de nombres aléatoires
+    
+    - x, q : valeur ou vecteur de quantiles: nombre de balles rouges tirées sans remise d'une urne
+    - m : nombre de balles rouges dans l'urne
+    - n : nombre de balles vertes dans l'urne
+    - k : nombre de balles extraites de l'urne
+    - p : probabilité d'obtenir une valeur inférieure (ou supérieure) à X
+    - nn: nombre d'observations à générer
+    - lower.tail : valeur logique indiquant si on considère les probabilités cumulatives inférieures (défaut) ou supérieures à X.
+
+Reprenant l'exemple précédent avec:
+  - x = 4 : nombre d'avocats sélectionnés détenant une maîtrise
+  - m = 40: nombre d'avocats détenant une maîtrise au niveau du cabinet
+  - n = 10: nombre d'avocats détenant un doctorat au niveau du cabinet
+  - k = 5 : taille du comité à former
+  
+on obtient:
+
+```{r}
+cat("P(4) = ",dhyper(4, 40, 10, 5))
+```
+La probabilité d'obtenir 4 avocats détenant une maîtrise ou moins:
+
+```{r}
+cat("P(X<=4) = ",phyper(4, 40, 10, 5))
+```
+La probabilité d'obtenir 4 avocats détenant une maîtrise ou plus:
+
+```{r}
+cat("P(X>=3) = ",phyper(4, 40, 10, 5, lower.tail = FALSE))
+```
+
+Finalement, on peut générer des nombres aléatoires suivant la distribution hypergéométrique à l'aide de:
+
+```{r}
+x <- rhyper(2000,40,10,5)
+head(x,20)
+hist(x,main="Distribution Hypergéométrique")
+```
+
+Cette dernière fonction nous permet d'obtenir par simulation la probabilité recherchée:
+
+```{r}
+x <-  rhyper(1000000,40,10,5)
+cat("P(X = 4) = ", mean(x == 4))
+```
+
+### La distribution hypergéométrique multivariée
+
+La distribution hypergéométrique ne peut s'appliquer que lorsque deux catégories sont présentes au niveau de la population (eg une urne contenant des balles rouges et des balles bleure; un cabinet composé d'avocats détenant une maîtrise ou un doctorat). Lorsque le nombre de catégories est supérieur à 2, une simple expansion de la fonction hypergéométrique peut s'appliquer:
+
+$$ P(X_1=x_1,...,X_k=x_k) = \frac{\prod_{i=1}^m {C_{x_i}^{n_i}}} {C_k^N}$$
+On note que par rapport à la distribution hypergéométrique, le seul ajout consiste à tenir compte de chacune des *k* catégories qui se trouvent dans la population.
+
+Pour illustrer, considérons une urne contenant 8 billes rouges, 3 jaunes et 9 blanches. On sélectionne au hasard 6 billes, sans remise. Quelle est la probabilité de choisir 2 billes rouges, une jaune et 3 blanches?
+
+Puisque la sélection des billes s'effectue dans remise, les résultats observés à chaque sélection de bille dépendent des sélections précédentes. Et puisqu'il y a 3 catégories de billes dans l'urne, la distribution hypergéométrique multivariée est appropriée.
+
+La probabilité recherchée est donc:
+
+$$P(R=2, J=1, B=3) = \frac{{C_2^8}{C_1^3}{C_3^9}}{C_6^{20}}=0.182$$
+
+La librairie **extraDistr** contient une fonction, **dmvhyper()** permettant ce type de calcul. Les arguments de cette fonction sont:
+  
+  - x : vecteur contenant les nombres cibles pour chaque catégorie
+  - n : vecteur contenant l'effectif de chacune des catégories
+  - k : taille de la sélection
+
+Pour l'exemple précédent, on obtient:
+
+```{r}
+library(extraDistr)
+x <- c(2,1,3) # nombres ciblés: 2 billes rouges, une jaune et 3 bleues
+n <- c(8,3,9) # nombres de billes dans l'urne: 8 rouges, 3 jaunes et 9 bleues
+k <- 6        # on tire 6 billes de l'urne
+cat("P(R=2, J=1, B=3) = ", dmvhyper(x,n,k))
+```
+
+Dans la même librairie, on trouve la fonction **rmvhyper()** qui permet de générer de données suivant la distribution hypergéométrique multivariée. On ajoute alors le paramètre **nn** représentant le nombre d'observations à générer:
+
+```{r}
+library(Rfast)
+nn <- 20
+n <- c(8,3,9)
+k <- 6
+x <- rmvhyper(nn,n,k)
+head(x, 20)
+
+```
+
+Cette dernière fonction permet de simplifier la programmation d'une simulation. Pour l'exemple précédent, il suffirait d'écrire:
+
+```{r}
+ndraw <- 100000
+obj <- c(2,1,3) # nombres ciblés: 2 billes rouges, une jaune et 3 bleues
+n <- c(8,3,9) # nombres de billes dans l'urne: 8 rouges, 3 jaunes et 9 bleues
+k <- 6        # on tire 6 billes de l'urne
+draw <- extraDistr::rmvhyper(ndraw,n,k) 
+succes <-sum(rowSums(t(apply(draw,1,function(x) x==obj)))==3)   
+cat("P(R=2, J=1, B=3) = ",succes/ndraw)
+```
+
+Ce résultat confirme celui obtenu en utilisant l'approche analytique classique.
+
+### La distribution de Poisson
+
+La distribution de Poisson peut s'appliquer lorsque l'on s'intéresse au nombre d’événements se produisant durant une certaine période de temps, ou sur une certaine distance, ou à l’intérieur d’une certaine zone, etc. Par exemple:
+  
+  - Nombre de crimes survenus à Port-au-Prince durant la première semaine du mois
+  - Nombre de condamnations prononcées par un juge donné, par mois
+  - Nombre de buts comptés par l’équipe de Soccer Haitienne, durant une partie de la Coupe des Amériques
+  - Nombre de fautes grammaticales par page d’un rapport…
+
+La distribution de probabilités de tels événements n'implique qu'un seul paramètre: le nombre moyen d'événements survenant par intervalle, que l'on identifiera par &\mu$. Formellement, cette distribution est définie par:
+$$P(X)=\frac{\mu^X e^{-\mu}}{X!} $$
+Afin d'illustrer l'utilisation d'une telle fonction, transportons-nous à l'aéroport Toussaint-Louverture de Port-au-Prince, où on estime que le nombre moyen de valises égarées par vol est de 0.3. Quelle est alors la probabilité qu'aucune valise ne soit perdue?
+
+Pour X = 0 et $\mu$= 0.3, on obtient:
+$$P(0)=\frac{0.3^0 e^{-0.3}}{0!} = 0.7408$$
+Sous R, les fonctions suivantes sont pertinentes dans ce contexte:
+  
+    - dpois(x, mu) : Probabilité de l'événement x (scalaire ou vecteur)
+    - ppois(q, mu, lower.tail = TRUE) : quantile ou vecteur de quantiles pour lesquels on cherche la probabilité cumulative inférieure (ou supérieure)
+    - qpois(p, mu, lower.tail = TRUE) : Valeur de X sous (ou au-dessus de) laquelle on trouve la probabilité cumulative **p**
+    - rpois(n, mu) : génération de nombres aléatoires suivant la distribution de Poisson
+    
+Pour l'exemple précédent, en utilisant la fonction **dpois()**, on obtient:
+
+```{r}
+x <- 0
+mu <- 0.3
+cat("P(X=0) = ",dpois(0, 0.3))
+```
+On peut également fournir une liste d'événements. Ainsi, quelles sont les probabilités que 0, 1, 2 ou 3 valises soient égarées dans un vol?
+
+```{r}
+x <- c(0,1,2,3)
+mu <- 0.3
+cat("P(X=0:3) = ",dpois(x, 0.3))
+```
+Come pour les distributions précédentes, le générateur de nombres aléatoires **rpois(n, mu)** permettra de simplifier grandement les simulations qu'on sera susceptible d'effectuer:
+
+```{r}
+x <- rpois(2000, 0.3)
+head(x, 20)
+hist(x+.001,main="Distribution de Poisson")
+```
+Le code suivant permettra d'obtenir la probabilité qu'aucune valise ne soit égarée, par voie de simulation:
+
+```{r}
+nrep = 1000000
+x <- 0
+mu <- 0.3
+cat("P(X=0) = ", mean(rpois(nrep, mu)==x))
+
+```
+
+
+## CONCLUSION
+
+Dans ce document, nous avons introduit les concepts fondamentaux des
+probabilités et de leurs distributions. Dans ce contexte, deux approches
+ont été mises en relief: une approche classique, pertinente lorsque
+l'espace échantillonnal est fini, de sorte que le nombre d'événements
+possibles puisse être formellement obtenu; et une approche fréquentiste
+nécessitant des algorithmes de simulation informatique. Tout au long des
+documents à suivre, ces notions seront mises en application afin
+d'étudier une vaste gamme de situations.
+
+Nous avons aussi introduit la **distribution BINÔMIALE**, qui est
+appropriée pour représenter des données discrètes obtenues lors
+d'expériences aléatoires dans lesquelles les résultats se présentent
+sous deux formes: '**SUCCÈS** ou **ÉCHEC**: en lançant un dé, on obtient
+un '6' ou on obtient 'autre chose'; en lançant une pièce de monnaie, on
+obtient **PILE** ou **FACE**. Cette distribution peut servir de prélude
+à plusieurs autres distributions de probabilité qui deviendront
+nécessaires pour traiter des situations plus complexes.
+
+
+## Solutionnaire des exercices
+
+### Exercice 1
+
+Pour chacune des situations suivantes, définissez l'expérience
+aléatoire, l'espace échantillonnal, ce que pourrait être un événement,
+et calculez nE et nS:
+
+1.  Dans un jeu de hasard, on lance 3 pièces de monnaie et on gagne si
+    on obtient 3 FACES ou 3 PILES.
+
+-   Solution:
+
+    -   L'expérience aléatoire est le **lancer de 3 pièces**
+    -   L'espace échantillonnal se compose de tous les événements
+        possibles lorsque 3 pièces de monnaie sont lancées: chaque pièce
+        peut tomber sur PILE ou FACE. Donc le nombre d'éléments
+        composant l'espace échantillonnal est égal à
+        $nS=2\times 2\times 2 = 2^3 = 8$
+    -   Les événements d'intérêt sont: PPP et FFF, et ces deux
+        événements sont uniques à l'intérieur de **S**. Donc nE = 2.
+
+2.  Dans une usine, on fabrique 12 instruments par heure. Ces 12
+    instruments sont ensuite mis en boîte, à la condition qu'il n'y ait
+    pas plus de 2 instruments présentant des défauts de fabrication.
+
+-   Solution:
+
+    -   L'expérience aléatoire est la constitution d'un ensemble de 12
+        instruments, chacun d'eux pouvant être défectueux ou non.
+    -   L'espace échantillonnal se compose de tous les ensembles de 12
+        instruments qu'il est possible de former, chacun d'eux pouvant
+        être défectueux ou non. Le nombre d'éléments composant cet
+        espace est égal à $nS=2^12^=4096$.
+    -   Les événements d'intérêt sont les ensembles de 12 instruments
+        comptant 0, 1 ou 2 instruments défectueux. Nous verrons plus
+        loin que nE serait égal au nombre de combinaisons de 12 objets
+        pris 0, puis 1, puis 2 à la fois:
+        $nE=\binom{12}{0}+\binom{12}{1}+\binom{12}{2}=1+12+66=79$
+
+3.  Dans une classe de mathématiques, 35 étudiants sont inscrits. Le
+    professeur espère qu'il n'y aura pas plus de 5 étudiants qui
+    échoueront le cours. On suppose ici que pour chacun des étudiants,
+    les chances d'échouer sont de 1/2 (ce qui n'est pas réaliste, mais
+    supposons-le pour les besoins de l'exemple!)
+
+-   Solution:
+
+    -   L'expérience aléatoire est 'être inscrit à un cours de
+        mathématiques'.
+    -   L'espace échantillonnal se compose de nS = 35 étudiants, chacun
+        pouvant échouer ou réussir le cours. Dans ce cas,
+        $nS = 2^35^=34,359,738,370$
+    -   Les événements d'intérêt sont: observer soit 0, 1, 2, 3, 4 ou 5
+        échecs. Dans ce cas,
+        $nE = \binom{35}{0}+\binom{35}{1}+\binom{35}{2}+\binom{35}{3}+\binom{35}{4}+\binom{35}{5} =1+35+595+6545+52360+324632=384,168$
+
+4.  En période de pandémie, un restaurant ne peut accueillir plus de 5
+    clients à la fois. À l'extérieur, 15 personnes attendent pour y
+    entrer et on choisit au hasard celles qui sont admises.
+
+-   Solution:
+
+    -   L'expérience aléatoire est 'sélectionner 5 personnes attendant à
+        l'extérieur'.
+    -   L'espace échantillonnal se compose des 15 personnes attendant à
+        l'extérieur. Donc nE = 15.
+    -   L'événement d'intérêt correspond aux 5 personnes sélectionnées.
+        Dans ce cas, $nE = \binom{15}{5}=3,003$
+
+5.  En période de pandémie, un restaurant ne peut accueillir plus de 5
+    clients à la fois. À l'extérieur, 15 personnes attendent pour y
+    entrer et on choisit au hasard celles qui sont admisesc Ces 15
+    personnes portent toutes des noms différents. Désignons-les par les
+    numéros 1 à 15.
+
+-   Quelle est la valeur de nE, si on veut admettre les personnes 1 à 5?
+
+    -   Solution:
+
+        -   Parmi l'ensemble des sélections possibles , il n'y a qu'une
+            manière de sélectionner les clients 1 à 5. nE = 1
+
+-   Quelle est la valeur de nS dans cette situation?
+
+    -   Solution:
+
+        -   De l'exercice 4, on a trouvé nS = 3,003
+
+-   Quelle est la probabilité que les personnes 1 à 5 soient admises?
+
+    -   Solution:
+
+        -   $P(E)=\frac{nE}{nS}=\frac{1}{3003}=0.000333$
+
+6.  De combien de façons différentes peut---on répartir un groupe de 7
+    personnes sur une rangée de 7 chaises ?
+
+-   Solution:
+
+    -   7 personnes peuvent prendre la première chaise; il reste 6
+        personnes pour la deuxième, 5 pour la troisième, etc. Donc il y
+        a 7! = 5040 manière d'assoir 7 personnes dans une rangée de 7
+        chaises.
+
+7.  Trois garçons et deux filles prennent place sur un banc public de 5
+    places:
+
+-   De combien de facons différentes, 3 garcons et 2 filles peuvent-ils
+    prendre place sur ce banc?
+
+    -   Solution:
+
+        -   Cinq personnes peuvent prendre place de 5! = 120 manière,
+            sur un banc de 5 places.
+
+-   De combien de facons peuvent-ils s'asseoir si les garcons s'assoient
+    les uns à côté des autres et s'il en est de méme pour les filles ?
+
+    -   Solution:
+
+        -   Si les garçons et les filles sont groupés, on obtient soit
+            'GGGFF' ou 'FFGGG'. Donc il y a 2 façons d'obtenir cet
+            arrangement.
+
+-   De combien de maniéres différentes peuvent---ils s'asseoir si
+    seulement les filles s'assoient l'une a côté de l'autre?
+
+    -   Solution:
+
+        -   Dans ce cas, les arrangements possibles sont: 'GFFGG',
+            'GGFFG'. Donc deux arrangements possibles.
+
+### Exercice 2
+
+1.  Un comité de 3 personnes doit être formé à partir d'un groupe de 12
+    employés d'un grand commerce. Une des 3 personnes sélectionnées sera
+    présidente du comité, une autre sera secrétaire, et l'autre agira
+    comme conseillère.
+
+```{=html}
+<!-- -->
+```
+a.  Combien de comités différents sont possibles?
+
+```{=html}
+<!-- -->
+```
+    - Solution:
+      - Puisqu'un rôle particulier est donné à chaque personne composant un comité, on doit tenir compte de l'ordre. Le nombre de PERMUTATIONS de 12 personnes prises 3 à la fois est donc:
+      $$P(12,3) =   \frac{12!}{(12-3)!} = 12\cdot11\cdot10=1320$$
+      
+
+b.  En supposant que les 12 employés du commerce portent des noms
+    différents, combien de comités seraient composé de 'Marie-Lune',
+    'Pierre', et 'Harold'?\
+    - Solution:
+
+    -   Ces trois personnes forment un comité, et chacune d'elles prend
+        un des 3 rôles. Le nombre de permutations de trois personnes
+        prises 3 à la fois est égal à 6: 3 personnes peuvent occuper le
+        poste de président. Une fois ce poste comblé, il reste 2
+        personnes pour les postes de secrétaire et de conseiller. Et
+        finalement, la troisième personne prend le dernier poste:
+        P(3,3)=6
+
+c.  Quelle est la probabilité que ce dernier événement se produise?\
+    - Solution:
+
+    -   $P(E)=\frac{6}{1320}=0.004545$
+
+d.  Si 'Pierre' doit nécessairement être Président en raison de son
+    ancienneté dans l'entreprise, dans combien de comités lui
+    associerait-on 'Marie-Lune' et 'Harold'?\
+    - Solution:
+
+    -   Si Pierre est président, deux personnes sont sélectionnées parmi
+        les 11 qui restent disponibles. Le nombre de permutations de 11
+        personnes prises 2 à la fois est:
+        $$P(11,2) =   \frac{11!}{(11-2)!} = 11\cdot10=110$$ De ces 110
+        possibilités, les événements 'Marie-Lune est secrétaire' et
+        'Harold est conseiller', et 'Marie-Lune est conseillère' et
+        'Harold est secrétaire' sont les deux seuls événements
+        d'intérêt.
+
+e, Quelle est la probabilité que ce dernier événement se produise?\
+- Solution: - $P(E)=\frac{2}{110}=0.01818$
+
+### Exercice 3
+
+1.  De combien de maniéres peut-on former un jury de 3 hommes et 2
+    femmes parmi 7 hommes et 5 femmes ?
+
+-   Solution: $$C(7,3) = \frac{7!}{3!(7-3)!} = 35$$\
+    $$C(5,2) = \frac{5!}{2!(5-2)!} = 10$$\
+    Le nombre total est le produit: $35\times10=350$ Sous R:
+
+```{r}
+choose(7,3)*choose(5,2)
+```
+
+2.  À l'occasion d'un examen, un étudiant doit répondre à 8 questions
+    sur un total de 10.
+
+```{=html}
+<!-- -->
+```
+a.  Combien de choix de questions sont possibles ?
+
+-   Solution:
+
+    -   Le nombre de combinaisons de 10 questions prises 8 à la fois:
+
+    ```{r}
+    choose(10,8)
+    ```
+
+b.  Combien de choix y a-t-il s'il doit répondre aux 3 premières
+    questions ?
+
+-   Solution:
+
+    -   Si les 3 premières questions sont obligatoires, il reste 5
+        questions à choisir parmi les 7 qui restent:
+
+    ```{r}
+    choose(7,5)
+    ```
+
+c.  Combien de choix y a---t-il s'il doit répondre au moins à 4 des 5
+    premières questions ?
+
+-   Solution:
+
+    -   Ici, on doit considérer le choix de 4 questions parmi les 5
+        premières. Une fois ces 4 questions sélectionnées, il en reste 6
+        à partir desquelles on doit en choisir 4. Donc, le nombre
+        d'examens différents est:
+
+    ```{r}
+    choose(5,4)*choose(6,4)
+    ```
+
+3.  Combien de plaques d'immatriculation de véhicules peut-on former si
+    chaque plaque contient 2 lettres différentes suivies de 3 chiffres
+    différents ?
+
+-   Solution:
+
+    -   On doit choisir 2 lettres parmi les 26 que contient l'alphabet,
+        et 3 chiffres parmi les entiers de 0 à 9. Donc, le nombre de
+        plaques d'immatriculation possible est:
+
+    ```{r}
+    choose(26,2)*choose(10,3)
+    ```
+
+### Exercice 4
+
+Considérez le diagramme suivant pour les questions suivantes:
+
+![Diagramme de Venn](./images/Diag_Venn.png) a. Quelle est donc la
+probabilité qu'un étudiant s'inscrive à un cours de Physique (B), OU à
+un cours de Chimie (C)? - Solution: - Les événements ne sont pas
+mutuellement exclusifs. Donc\
+$$P(B\cup C)=P(B)+P(C)−P(B\cap C)=100/200+120/200−60/200=160/200=0.80$$
+
+b.  Quelle est la probabilité qu'un étudiant s'inscrive à un cours de
+    Physique ET de Chimie?\
+
+-   Solution:
+
+    -   60 étudiants s'inscrivent à ces 2 cours: 60/200 = 0.30
+
+c.  Quelle est la probabilité qu'un étudiant ne s'inscrive pas à un
+    cours de Stats?
+
+-   Solution:
+
+    -   70 étudiants s'inscrivent au cours de Physique mais pas au cours
+        de Stats; 100 étudiants s'inscrivent au cours de Chimie mais pas
+        au cours de Stats; et 40 étudiants s'inscrivent aux cours de
+        Physique et de Chimie, mais pas au cours de Stats. Donc on a:
+        $$70/200+100/200−40/200=130/200=0.65$$
+
+d.  Quelle est la probabilité qu'un étudiant s'inscrive à un cours de
+    Chimie, mais pas à un cours de Stats?
+
+-   Solution:
+
+    -   120 étudiants sont inscrits au cours de Chimie, mais 20 de
+        ceux-ci sont aussi inscrits au cours de Stats. Donc la
+        probabilité recherchée est 100/200 = 0.5
+
+e.  Quelle est la probabilité qu'un étudiant s'inscrive à un cours de
+    Physique et à un cours de Chimie, mais pas à un cours de Stats?
+
+-   Solution:
+
+    -   Cette question est une simple reformulation de la question (c)
+
+f.  Quelle est la probabilité qu'un étudiant s'inscrive à 2 cours
+    seulement?
+
+-   Solution:
+
+    -   30 étudiants sont inscrits aux cours de Physiques et de Stats,
+        mais de ce nombre, 20 sont aussi inscrits au cours de Chimie
+    -   20 étudiants sont inscrits aux cours de Chimie et de Stats, mais
+        ces étudiants sont aussi inscrits au cours de Physique
+    -   60 étudiants sont inscrits aux cours de Physique et Chimie, mais
+        20 de ces étudiants sont aussi inscrits au cours de Stats.
+    -   Donc la probabilité recherchée est
+        (30-10)+(20-20)+(60-20)=50/200 = 0.25
+
+g.  Quelle est la probabilité qu'un étudiant ne s'inscrive qu'à un seul
+    cours?
+
+-   Solution:
+
+    -   Du diagramme on note: (30+60+30)/200 = 120/200 = 0.60
+
+h.  Quelle est la probabilité qu'un étudiant s'inscrive aux trois cours?
+
+-   Solution:
+
+    -   20 étudiants sont inscrits aux trois cours: 20/200 = 0.10
+
+i.  Quelle est la probabilité qu'un étudiant ne soit encore inscrit à
+    aucun cours?
+
+-   Solution:
+
+    -   10 étudiants ne sont inscrits à aucun cours (énoncé du
+        problème). Donc la probabilité recherchée est 10/200 = 0.05
+
+j.  Quelle est la probabilité qu'un étudiant s'inscrive à un cours de
+    Physique, OU à un cours de chimie, mais pas les deux à la fois?
+
+-   Solution:
+
+    -   40 étudiants sont inscrits au cours de Physique, mais pas au
+        cours de Chimie;
+    -   60 étudiants sont inscrits au cours de Chimie, mais pas au cours
+        de Physique;
+    -   Donc (40+60)/200 = 0.50
+
+k.  Quelle est la probabilité qu'un étudiant s'inscrive soit au cours de
+    Stats uniquement, soit au cours de Physique ET au cours de Chimie
+    (mais pas au cours de Stats)?
+
+-   Solution:
+
+    -   P(Stats uniquement) = 30/200 = 0.15
+    -   P(Physique et Chimie et pas Stats) = 40/200 = 0.20
+    -   Probabilité recherchée = 0.15 + 0.20 = 0.35
+
+l.  Est-ce que l'inscription à un cours de Physique est indépendante
+    d'une inscription à un cours de Chimie?
+    $$ P(P \cap C)=0.20~~~~P(P)=0.5~~~~P(C)=0.60~~~~~P(P) \times P(C)=0.30$$
+    Ces deux événements ne sont pas indépendants!
+
+m.  Est-ce que l'inscription à un cours de Physique est indépendante
+    d'une inscription à un cours de Stats?
+    $$ P(P \cap S)=0.15~~~~P(P)=0.50~~~~P(S)=0.30~~~~~P(P) \times P(C)=0.15$$
+    Ces deux événements sont indépendants
+
+n.  Est-ce que l'inscription à un cours de Chimie est indépendante d'une
+    inscription à un cours de Stats?
+
+$$ P(C \cap S)=0.10~~~~P(C)=0.60~~~~P(S)=0.30~~~~~P(C) \times P(S)=0.18$$
+Ces deux événements ne sont pas indépendants
+
+### Exercice 5
+
+1.  Déterminez la distribution de fréquence des résultats (nombre de
+    FACES), lorsque le nombre de pièces de monnaie est n = 100, et que
+    les pièces ne sont pas trafiquées (soit p = 0.5).
+
+-   Solution:
+
+    -   Par simulation, créons la distribution de probabilités du lancer
+        de 100 pièces de monnaie. Répétons l'échantillonnage 10,000
+        fois:
+
+```{r echo=FALSE}
+CoinToss = function(n=1,p=0.5){
+  coin = c("Pile","Face")
+  x = sample(coin,n,c(p,1-p),replace=TRUE)
+  return(x)
+}
+```
+
+```{r, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+res = vector()    # Initialisation du vecteur des résultats
+No_essais = 10000 # Spécification du nombre d'essais à effectuer
+for(i in 1:No_essais){
+  x = CoinToss(100,0.5)
+  res[i] = sum(x=="Face")
+}
+fr = as.matrix(table(res))
+pr = fr[,1] / No_essais
+x = sort(unique(res))
+tbl = data.frame(x,fr,pr)
+espm=sum(x*pr)
+colnames(tbl) = c("#Faces","Fréq","Prop")
+hist(res+.001,xlab="Nombre de Faces",ylab="Fréquences",main="Distribution de probabilités: 5 pièces")
+kable(tbl, booktabs=TRUE, caption="Distribution du nombre de Faces",row.names=FALSE) %>%
+  kable_styling(full_width = FALSE)
+cat("Espérance Mathématique = ",espm)
+```
+
+```{r echo=FALSE}
+kable(tbl, booktabs=TRUE, caption="Distribution du nombre de Faces",row.names=FALSE) %>%
+  kable_styling(full_width = FALSE)
+```
+
+2.  Comment pourriez-vous qualifier la distribution obtenue?
+
+-   Elle est symétrique
+-   les valeurs inférieures à 30 et supérieure à 70 sont très
+    improbables
+-   Le centre de la distribution semble se trouver autour de 50 FACEs,
+    et de fait, pour cette simulation, l'espérance mathématique est
+    égale à:
+
+```{r edho=FALSE}
+espm
+```
+
+3.  Obtenez la proportion des essais où on obtient plus de 65 FACES, en
+    utilisant le tableau de fréquences.
+
+-   Solution:
+
+```{r}
+sum(pr[(x>=65)])/length(x)
+```
+
+4.  Obtenez cette proportion en comptabilisant cette proportion
+    directement des résultats de chaque essai.
+
+-   Solution:
+
+    -   La variable contenant l'ensemble des résultats obtenus à chaque
+        essai est **res**. Le code R suivant cherche les valeurs de
+        **res** supérieures à 65:
+
+    ```{r}
+    cat("La probabilité d'obtenir 65+ FACEs = ",sum(res>=65)/length(res))
+    ```
+
+5.  Pour quelle proportion des essais obtient-on entre 65 et 85 FACES?
+
+-   Solution:
+
+```{r}
+cat("La probabilité d'obtenir entre 65 et 85 FACEs = ",sum((res>=65)&(res<=85))/length(res))
+```
+
+6.  Sous quelle valeur de x (nombre de FACES) trouve-t'on 75% de la
+    distribution?\
+
+-   Solution:
+
+    -   La position de la valeur de x sous laquelle on trouve 75% de la
+        distribution est:
+
+    ```{r}
+    rc75 = round(0.75*length(res),0)
+    ```
+
+    -   Donc, en ordonnant les scores en ordre croissant, et en trouvant
+        le score occupant cette position, on trouve:
+
+    ```{r}
+    sort(res)[rc75]
+
+    ```
+
+7.  Au-dessus de quelle valeur de x trouve-t'on 10% de la distribution?
+
+-   Solution:
+
+    -   De la même manière, en inversant la requête, on cherche la
+        valeur de X sous laquelle se trouve 90% de la distribution:
+
+```{r}
+sort(res)[length(res)*0.9]
+```
+
+8.  Quelles sont les limites à l'intérieur desquelles on retrouve les
+    95% centraux des résultats de lancers de ces 100 pièces de monnaie?
+
+```{r}
+sx = sort(res)
+liminf = length(res)*.025
+limsup = length(res)*0.975
+cat("[",sx[liminf]," < X < ",sx[limsup],"] = 95%")
+```
+
+### Exercice 6
+
+1.  Déterminez la distribution de fréquence des résultats observés en
+    lançant un dé à 100 reprises, supposant que le dé n'est pas truqué.
+
+-   Solution:
+
+    -   Le code R permettant la simulation du lancer d'un dé est
+        reproduit ci-dessous:
+
+```{r echo=FALSE}
+DiceRoll = function(n=1,p=rep(1,6)){
+  dice = 1:6
+  x = sample(dice,n,p,replace=TRUE)
+  return(x)
+}
+```
+
+```{r}
+res = vector()  # Initialisation du vecteur des résultats
+No_essais = 100  # Spécification du nombre d'essais à effectuer
+res = DiceRoll(No_essais)
+ft = as.matrix(table(res))
+fr = ft/sum(ft)
+f = data.frame(sort(unique(res)), ft, fr)
+colnames(f) = c("Face", "Fréq", "Prop")
+
+barplot(height = f$Fréq, names = f$Face, xlab = "Observations", 
+    ylab = "Fréquences", main = "Répartition de résultats des lancers d'un dé non truqué")
+```
+
+2.  Comment pourriez-vous qualifier la distribution obtenue? A première
+    vue, seriez-vous porté à croire que le dé est truqué?
+
+-   Solution:
+
+    -   À première vue, il semble que la probabilité d'obtenir un ou
+        l'autre des résultats possibles (1-6) varie. S'il existe une
+        différence suffisamment grande dans ces probabilités, on pourra
+        peut-être croire que le dé est truqué. Mais le nombre de
+        réplications est relativement faible!
+
+3.  Répétez l'expérience en lançant le dé 300 fois, puis 1000 fois, et
+    enfin 10,000 fois. Avez-vous des raisons de croire que le dé est
+    truqué?
+
+```{r}
+for (i in c(300, 1000, 10000)) {
+    res = vector()  # Initialisation du vecteur des résultats
+    res = DiceRoll(i)
+    ft = as.matrix(table(res))
+    ft = data.frame(sort(unique(res)), ft, ft/sum(ft))
+    colnames(ft) = c("Face", "Fréq", "Prop")
+    titl = paste("Répartition de résultats des lancers d'un dé\n (", 
+        i, "lancers)")
+    barplot(height = ft$Fréq, names = ft$Face, xlab = "Observations", 
+        ylab = "Fréquences", main = titl)
+}
+```
+
+    - Avec un grand nombre de réplications, les différences entre les probabilités d'obtenir une face particulière s'estompent. Il devient de plus en plus difficile de croire que le dé est truqué.
+
+4.  Quelle conclusion générale pourriez-vous tirer de ces expériences?\
+
+-   Solution:
+
+    -   La précision des estimations de probabilités augmente avec le
+        nombre de réplications.
+
+5.  Exécutez le code R suivant afin de définir un dé trafiqué de manière
+    à ce que la probabilité d'obtenir une des faces du dé (1-6) soit
+    différente de celle typique d'un dé non truqué, et pour obtenir un
+    échantillon initial de 30 lancers de ce dé.
+
+```{r}
+No_essais = 30
+p6 = sample(c(rep(1.6667, 5), 1.6667 + runif(1, -0.7, 0.7)),6)
+res = DiceRoll(No_essais, p = p6)
+ft = as.matrix(table(res))
+ft = data.frame(sort(unique(res)), ft, ft/sum(ft))
+colnames(ft) = c("Face", "Fréq", "Prop")
+titl = paste("Répartition de résultats des lancers d'un dé truqué\n pour ", 
+    No_essais, "lancers")
+barplot(height = ft$Fréq, names = ft$Face, xlab = "Observations", 
+    ylab = "Fréquences", main = titl)
+```
+
+6.  Êtes-vous en mesure de conclure sans doute raisonnable que le dé a
+    été trafiqué, sur la base de ces données?\
+
+-   Solution:
+
+    -   Les probabilités semblent différer pour les différentes faces du
+        dé. Mais le nombre d'essais est trop faible pour permettre une
+        conclusion définitive...
+
+7.  Répétez l'expérience en modifiant le nombre d'essais graduellement:
+    60, 120, 300, 1,000, 3,000... À partir de quel moment auriez-vous
+    confiance en affirmant que le dé est truqué, sur la base des
+    observations?\
+
+-   Soluton:
+
+    -   Le code R est modifié afin de permettre la simulation impliquant
+        différents nombres d'essais. Au besoin, vous pouvez ajouter des
+        nombres d'essais au départ de la boucle **for()**:
+
+```{r}
+p6 = sample(c(rep(1.6667, 5), 1.6667 + runif(1, -0.7, 0.7)),6)
+res=vector()
+for(No_essais in c(60,120,300,1000,3000)){
+  res = DiceRoll(No_essais, p = p6)
+  ft = as.matrix(table(res))
+  ft = data.frame(sort(unique(res)), ft, ft/sum(ft))
+  colnames(ft) = c("Face", "Fréq", "Prop")
+  titl = paste("Répartition de résultats des lancers d'un dé truqué\n pour ",No_essais, "lancers")
+  barplot(height = ft$Fréq, names = ft$Face, xlab = "Observations",ylab = "Fréquences", main = titl)
+}
+```
+
+8.  Pour quelle face le dé est-il trafiqué, et quelle est la probabilité
+    d'obtenir ce résultat, à 5 décimales près? Il est possible que vous
+    deviez utiliser un grand nombre d'essais pour le déterminer... Pour
+    les données actuelles, le vecteur **p6** contient les valeurs:
+
+```{r}
+p6
+```
+
+Ces valeurs sont proportionnelles aux probabilités d'obtenir 1, 2, 3, 4,
+5 ou 6, respectivement, en lançant le dé. En relançant l'exercice, vous
+obtiendrez des résultats différents, la face truquée et les probabilités
+varieront d'une fois à l'autre. Expérimentez!
+
+### Exercice 7
+
+1.  Pourriez-vous écrire un code R permettant de simuler le lancer de 10
+    dés non-truqués et de calculer la somme des valeurs observées?
+    Inscrivez votre code dans l'espace ci-dessous. Puis appliquez ce
+    code dans la console.
+
+-   Solution:
+
+    -   Le code R pourrait ressembler à ceci (plusieurs façons
+        existent!)
+
+    ```{r}
+    dice.roll <- sample(1:6, size = 10, replace = TRUE)
+    dice.roll
+    sum(dice.roll)
+    ```
+
+2.  Pourriez-vous écrire un code R permettant de lancer un seul dé à 20
+    reprises? Utilisez l'espace ci-dessous pour ce faire, puis appliquez
+    ce code dans la console.
+
+-   Solution:
+
+    -   Votre code R pourrait ressembler à ceci:
+
+    ```{r}
+    replicate(20,sample(1:6,size=1,replace=TRUE))
+    ```
+
+### Exercice 8
+
+Puisque les données varient aléatoirement d'une expérience à l'autre,
+relançons la simulation nécessaire à cet exercice:
+
+```{r echo=FALSE}
+two.dice <- function(){
+  dice <- sample(1:6, size = 2, replace = TRUE)
+  return(sum(dice))
+}
+```
+
+```{r}
+No_essais = 500  # Définition du nombre d'essais
+x = replicate(No_essais, two.dice())
+ft = as.matrix(table(x))
+ft = data.frame(sort(unique(x)), ft, ft/sum(ft))
+colnames(ft) = c("Somme", "Fréq", "Prop")
+kable(ft, booktabs = TRUE, caption = "Résultats du lancer de 2 dés", 
+    row.names = FALSE) %>%
+    kable_styling(full_width = FALSE)
+```
+
+**Les données à examiner se trouvent dans la variable x**
+
+1.  En vous basant sur la dernière distribution obtenue suite à 500
+    lancers de deux dés, quelle serait la probabilité d'obtenir une
+    somme supérieure à 10?
+
+```{r}
+sum(x>10)/length(x)
+```
+
+2.  Toujours en vous basant sur la distribution obtenue, quelle serait
+    la probabilité d'obtenir une somme supérieure à 10 ou inférieure à
+    5?
+
+```{r}
+sum((x>10)|(x<5))/length(x)
+```
+
+3.  Quelle serait la probabilité d'obtenir une somme comprise entre 6 et
+    8?
+
+```{r}
+sum((x<=8)&(x>=6))/length(x)
+```
+
+4.  Quelle est la probabilité d'obtenir au plus une somme égale à 6?
+
+```{r}
+sum(x<=6)/length(x)
+```
+
+5.  Quelle est la probabilité d'obtenir au moins une somme égale à 6?
+
+```{r}
+sum(x>=6)/length(x)
+```
+
+###  Exercice 9
+
+Relançons la simulation en utilisant 500,000 réplications (si vous avez
+un peu plus de temps, essayez 1 millions de réplications).
+
+```{r}
+No_essais = 500000  # Définition du nombre d'essais
+x = replicate(No_essais, two.dice())
+ft = as.matrix(table(x))
+ft = data.frame(sort(unique(x)), ft, ft/sum(ft))
+colnames(ft) = c("Somme", "Fréq", "Prop")
+kable(ft, booktabs = TRUE, caption = "Résultats du lancer de deux dés", 
+    row.names = FALSE) %>%
+    kable_styling(full_width = FALSE)
+```
+
+1.  Dans cette distribution, quelle est la probabilité d'obtenir une
+    somme supérieure à 10?
+
+-   Solution:
+
+```{r}
+sum(x>10)/length(x)
+```
+
+2.  Quelle serait la probabilité d'obtenir une somme supérieure à 10 ou
+    inférieure à 5?
+
+-   Solution:
+
+```{r}
+sum((x>10)|(x<5))/length(x)
+```
+
+3.  Quelle serait la probabilité d'obtenir une somme comprise entre 6 et
+    8?
+
+-   Solution:
+
+```{r}
+sum((x>=6)&(x<=8))/length(x)
+```
+
+4.  Quelle est la probabilité d'obtenir une somme inférieure ou égale à
+    6?
+
+-   Solution:
+
+```{r}
+sum(x<=6)/length(x)
+```
+
+5.  Quelle est la probabilité d'obtenir une somme supérieure ou égale à
+    6?
+
+-   Solution:
+
+```{r}
+sum(x>=6)/length(x)
+```
+
+6.  Comparez ces trois probabilités à celles obtenues dans l'exercice 3.
+    Quel ensemble de probabilités vous semble le plus précis?
+
+-   Solution:
+
+    -   La simulation impliquant le plus grand nombre de réplications
+        sera toujours le plus précis.
+
+7.  Considérez une modification de la fonction two.dice() qui retourne
+    la valeur des deux dés, plutôt que leur somme:
+
+```{r}
+two.dice2 <- function(){
+  dice <- sample(1:6, size = 2, replace = TRUE)
+  return(dice)
+}
+```
+
+-   En utilisant cette fonction et la fonction replicate(), obtenez la
+    probabilité d'obtenir un double, soit (1,1), (2,2), ..., (6,6))?
+
+    -   Solution:
+
+    ```{r}
+    nrep = 10000
+    x = replicate(nrep,two.dice2())
+    cat("La probabilité d'obtenir un double = ",sum(x[1,]==x[2,])/nrep)
+    ```
+
+8.  Quelle serait la probabilité qu'au moins un des deux dés soit un
+    '6'?
+
+-   Solution:
+
+```{r}
+cat("La probabilité d'obtenir au moins un 6 = ",sum((x[1,]==6)|(x[2,]==6)|((x[1,]==6)&(x[2,]==6)))/nrep)
+```
+
+9.  Il existe un vieux jeu de hasard italien appelé Passadieci, dans
+    lequel le but est d'obtenir au moins 11 lorsque trois dés à six
+    faces sont lancés. La fonction suivante vous permettra d'effectuer
+    autant d'expériences aléatoires (lancers de 3 dés) que vous le
+    désirez et d'obtenir la somme de ces trois dés:
+
+```{r }
+three.dice = function(){
+  res = sample(1:6,3,replace = TRUE)
+  return(sum(res))
+}
+```
+
+a.  Utilisez cette fonction et la fonction replicate() pour simuler
+    100,000 réplications de ce jeu et sauvegardez les résultats dans un
+    vecteur appelé passadieci.
+
+-   Solution:
+
+```{r}
+passadieci = replicate(100000,three.dice())
+```
+
+-   Utilisez ce vecteur pour répondre aux questions suivantes :
+
+b.  Quelle est la probabilité de gagner à ce jeu (ie obtenir une somme
+    supérieure ou égale à 11) ?
+
+```{r}
+sum(passadieci>=11)/length(passadieci)
+```
+
+c.  Qu'est-ce qui est le plus probable en lançant trois dés : obtenir 11
+    ou obtenir 12 ?
+
+```{r}
+s11 = sum(passadieci==11)/length(passadieci)
+s12 = sum(passadieci==12)/length(passadieci)
+if(s11<s12){cat("Obtenir 12 est plus probable")
+}else{cat("Obtenir 11 est plus probable")}
+```
+
+d.  Quelle est la probabilité d'obtenir une somme inférieure ou égale à
+    7 ou supérieure ou égale à 15, toujours en lançant nos 3 dés?
+
+```{r}
+  sum((passadieci<=7)|(passadieci>=15))/length(passadieci)
+```
+
+e.  Tracez un graphique pour illustrer l'ensemble de la distribution des
+    probabilités.
+
+```{r}
+hist(passadieci)
+```
+
+10. Parmi les deux situations suivantes, laquelle est la plus probable?
+
+    1.  obtenir au moins un 6 en lançant 4 fois un seul dé à six faces.
+    2.  obtenir au moins une paire de 6 en lançant 24 fois deux dés à
+        six faces.
+
+    -   Vous devez donc effectuer deux simulations de manière à
+        déterminer la probabilité d'obtenir au moins un '6' en lançant 4
+        dés. La fonction suivante pourrait s'avérer utile:
+
+```{r}
+SituationA <- function(){
+  rolls <- sample(1:6, size = 4, replace = TRUE)
+  res1 <- sum(rolls == 6) > 0
+  return(res1)
+}
+```
+
+    - la probabilité d’obtenir au moins une paire de 6 en lançant 24 fois deux dés. La fonction suivante devrait pouvoir faire le travail:
+
+```{r}
+SituationB <- function(){
+  d1 <- sample(1:6, size = 24, replace = TRUE)  # Deux dés sont lancés 
+  d2 <- sample(1:6, size = 24, replace = TRUE)  # 24 fois
+  res2 <- sum((d1 == d2) & (d1 == 6)) > 0       # Condition recherchée
+  return(res2)
+}
+```
+
+    - Pour répondre à la question, il suffira d’utiliser la fonction replicate() pour chacune de ces deux fonctions pour établir la distribution de probabilités correspondant aux deux situations. On pourra alors déterminer laquelle des situations est la plus probable!
+
+-   Solution:
+
+```{r}
+x = replicate(10000,SituationA())
+p1 = sum(x)/length(x)
+y = replicate(10000,SituationB())
+p2 = sum(y)/length(y)
+cat("Probabilité de la situation A = ",p1)
+cat("Probabilité de la situation B = ",p2)
+if(p1<p2){cat("La situation B est plus probable!")
+  }else{cat("La situation A est plus probable!")}
+```
+
+### Exercice 10
+
+Pour les exercices suivants, utilisez l'approche classique et la
+simulation pour obtenir les réponses:
+
+1.  Sous le balcon de Juliette, Roméo cueille des fleurs pour lui lancer
+    un bouquet. Le parterre de roses (la fleur) comporte 4 fleurs
+    rouges, 3 fleurs jaunes et 5 fleurs roses. Roméo procédant dans
+    l'obscurité, il ne peut pas contrôler la couleur des fleurs qui est
+    donc considérée comme aléatoire.
+
+```{=html}
+<!-- -->
+```
+a.  Si Roméo cueille trois fleurs, quelle est la probabilité qu'il
+    obtienne trois fleurs de couleur rose ?
+
+-   Solution:
+
+    -   Classique: $$nS = \binom{12}{3}=\frac{12!}{3!(12-3)!}=220$$
+        $$nE = \binom{5}{3}=\frac{5!}{3!(5-3)!}=10$$
+        $$P(3 Roses)=\frac{10}{220}=0.045$$
+
+    -   Simulation:
+
+        -   Utilisons la fonction PolyUrn(), modifié pour un contexte
+            bucolique:
+
+        ```{r}
+        polyUrn = function(n=20, R=5, j=7, r=10, repl=FALSE){
+          # n: size of draws
+          # R: Nombre de fleurs rouges
+          # j: Nombre de fleurs jaunes
+          # r: Nombre de fleurs roses
+          urn = c(rep("Rouge", R), rep("Jaune", j), rep("Rose", r))
+          draw = sample(urn, size=n, replace=repl)
+          x = c(sum(draw=="Rouge"), sum(draw == "Jaune"), sum(draw == "Rose"))
+          return(x)
+        }
+        ```
+
+        Le code R suivant procède en échantillonnant à 10,000 reprises
+        l'espace échantillonnal:
+
+```{r}
+ndraw=100000  # Nombre d'expériences aléatoires (tirage de balles)
+n = 3         # Nombre de fleurs formant le bouquet
+R = 4         # Nombre de fleurs rouges
+j = 3         # Nombre de fleurs jaunes
+r = 5         # Nombre de fleurs roses
+E = c(0,0,3)  # Événement recherché (R = 0, j = 0, r = 3)
+repl = FALSE
+succes = 0    # Initialisation des variables servant au comptage
+i = 0         #
+repeat{
+  draw = polyUrn(n,R,j,r,repl)    # Exécution d'une expérience
+  i = i + 1
+  if(sum(draw==E)==3){succes=succes+1}    # Est-ce un 'succès'?
+  if (i == ndraw){break}                  # Exercice complété?
+}
+cat("Probabilité = ",succes/ndraw)
+```
+
+b.  Si Roméo cueille trois fleurs, quelle est la probabilité qu'il
+    obtienne une fleur de chaque couleur ? - Solution:
+
+    -   Classique: $$nS = 220$$
+        $$nE = \binom{4}{1}+\binom{3}{1}+\binom{5}{3}=(3)(4)(5)=60$$
+        $$P(E)=\frac{60}{220}=0.273$$
+
+    -   Simulation:
+
+    ```{r}
+    ndraw=100000  # Nombre d'expériences aléatoires (tirage de balles)
+    n = 3         # Nombre de fleurs formant le bouquet
+    R = 4         # Nombre de fleurs rouges
+    j = 3         # Nombre de fleurs jaunes
+    r = 5         # Nombre de fleurs roses
+    E = c(1,1,1)  # Événement recherché (R = 1, j = 1, r = 1)
+    repl = FALSE
+    succes = 0    # Initialisation des variables servant au comptage
+    i = 0         #
+    repeat{
+      draw = polyUrn(n,R,j,r,repl)    # Exécution d'une expérience
+      i = i + 1
+      if(sum(draw==E)==3){succes=succes+1}    # Est-ce un 'succès'?
+      if (i == ndraw){break}                  # Exercice complété?
+    }
+    cat("Probabilité = ",succes/ndraw)
+    ```
+
+c.  Si Roméo cueille quatre fleurs, quelle est la probabilité qu'il
+    n'obtienne aucune fleur jaune ?
+
+-   Solution:
+
+    -   Classique: $$nS = \binom{12}{4}=\frac{12!}{4!(12-3)!}=495$$
+        $$nE = \binom{9}{4}=126$$ $$P(E)=\frac{126}{495}=0.255$$
+    -   Simulation:
+
+    ```{r}
+    ndraw=100000  # Nombre d'expériences aléatoires (tirage de balles)
+    n = 4         # Nombre de fleurs formant le bouquet
+    R = 4         # Nombre de fleurs rouges
+    j = 3         # Nombre de fleurs jaunes
+    r = 5         # Nombre de fleurs roses
+    E = c(1,0,1)  # Événement recherché (R = 1, j = 1, r = 1)
+    repl = FALSE
+    succes = 0    # Initialisation des variables servant au comptage
+    i = 0         #
+    repeat{
+      draw = polyUrn(n,R,j,r,repl)    # Exécution d'une expérience
+      i = i + 1
+      if(draw[2]==0){succes=succes+1}     # Est-ce un 'succès'?
+      if (i == ndraw){break}              # Exercice complété?
+    }
+    cat("Probabilité = ",succes/ndraw)
+    ```
+
+d.  Si Roméo cueille deux fleurs, quelle est la probabilité qu'il
+    obtienne des fleurs de couleurs différentes ?
+
+-   Solution:
+
+    -   Classique: $$nS = \binom{12}{2}=\frac{12!}{2!(12-2)!}=66$$
+        $$nE = \binom{4}{1}\times\binom{3}{1}+ \binom{4}{1}\times\binom{5}{1}+\binom{3}{1}\times\binom{5}{1}=47$$
+        $$P(E)=\frac{47}{66}=0.712$$
+
+    -   Simulation:
+
+    ```{r}
+    ndraw=100000  # Nombre d'expériences aléatoires (tirage de balles)
+    n = 2         # Nombre de fleurs formant le bouquet
+    R = 4         # Nombre de fleurs rouges
+    j = 3         # Nombre de fleurs jaunes
+    r = 5         # Nombre de fleurs roses
+    E = c(1,0,1)  # Événement recherché (R = 1, j = 1, r = 1)
+    repl = FALSE
+    succes = 0    # Initialisation des variables servant au comptage
+    i = 0         #
+    repeat{
+      draw = polyUrn(n,R,j,r,repl)    # Exécution d'une expérience
+      i = i + 1
+      succes=succes+!is.element(2,draw)   # Est-ce un 'succès'?
+      if (i == ndraw){break}              # Exercice complété?
+    }
+    cat("Probabilité = ",succes/ndraw)
+    ```
+
+2.  En utilisant la fonction polyUrn() et le code défini plus haut,
+    étudiez une situation dans laquelle l'urne contient 15 balles
+    rouges, 7 balles bleues et 20 balles vertes. Répétez les exercices
+    en variant le nombre d'expériences aléatoires.
+
+a.  Quelle est la probabilité, en tirant 10 balles, que cet échantillon
+    soit composé de 3 balles rouges, 4 balles bleues et 3 balles
+    vertes? - Solution:
+
+    -   Simulation: Le code R permettant de simuler cette situation est
+        reproduit ci-dessous:
+
+```{r}
+ndraw=100000  # Nombre d'expériences aléatoires (tirage de balles)
+n = 10        # Nombre de balles tirées lors d'une expérience
+r = 15        # Nombre de balles rouges
+b = 7         # Nombre de balles bleues
+g = 20        # Nombre de balles vertes
+E = c(3,4,3)  # Événement recherché (r = 3, b = 4, g = 3)
+repl = FALSE
+succes = 0    # Initialisation des variables servant au comptage
+i = 0         #
+repeat{
+  draw = polyUrn(n,r,b,g,repl)    # Exécution d'une expérience
+  i = i + 1
+  if(sum(draw==E)==3){succes=succes+1}    # Est-ce un 'succès'?
+  if (i == ndraw){break}                  # Exercice complété?
+}
+cat("Probabilité = ",succes/ndraw)
+```
+
+      - Approche classique:  
+
+      $$nS = \binom{42}{10}=\frac{42!}{10!(42-10)!}=$$
+
+```{r}
+nS = choose(42,10)
+cat("nS = ",nS)
+```
+
+      $$nE = \binom{15}{3}\times\binom{7}{4}\times \binom{20}{3}=$$
+
+```{r}
+nE = choose(15,3)*choose(7,4)*choose(20,3)
+cat("nE = ",nE)
+
+cat("P(E) = nE/nS =",nE/nS)
+```
+
+b.  Quelle est la probabilité, en tirant 10 balles, que cet échantillon
+    soit composé de 2 balles rouges, d'aucune balle bleue et d2 8 balles
+    vertes?
+
+    -   Solution:
+    -   Simulation: Le code R permettant de simuler cette situation est
+        reproduit ci-dessous:
+
+```{r}
+ndraw=100000  # Nombre d'expériences aléatoires (tirage de balles)
+n = 10        # Nombre de balles tirées lors d'une expérience
+r = 15        # Nombre de balles rouges
+b = 7         # Nombre de balles bleues
+g = 20        # Nombre de balles vertes
+E = c(2,0,8)  # Événement recherché (r = 8, b = 2, g = 0)
+repl = FALSE
+succes = 0    # Initialisation des variables servant au comptage
+i = 0         #
+repeat{
+  draw = polyUrn(n,r,b,g,repl)    # Exécution d'une expérience
+  i = i + 1
+  if(sum(draw==E)==3){succes=succes+1}    # Est-ce un 'succès'?
+  if (i == ndraw){break}                  # Exercice complété?
+}
+cat("Probabilité = ",succes/ndraw)
+```
+
+    - Solution: Approche classique:  
+
+      $$nS = \binom{42}{10}=\frac{42!}{10!(42-10)!}=$$
+
+```{r}
+nS = choose(42,10)
+cat("nS = ",nS)
+```
+
+      $$nE = \binom{15}{2}\times \binom{20}{8}=$$
+
+```{r}
+nE = choose(15,2)*choose(20,8)
+cat("nE = ",nE)
+
+cat("P(E) = nE/nS =",nE/nS)
+```
+
+      $$P(E)=\frac{47}{66}=0.712$$
+       
+
+c.  Quelle est la probabilité qu'un échantillon de 12 balles ne soit
+    composé que de balles vertes?
+
+    -   Solution:
+    -   Simulation: Le code R permettant de simuler cette situation est
+        reproduit ci-dessous:
+
+```{r}
+ndraw=100000  # Nombre d'expériences aléatoires (tirage de balles)
+n = 12        # Nombre de balles tirées lors d'une expérience
+r = 15        # Nombre de balles rouges
+b = 7         # Nombre de balles bleues
+g = 20        # Nombre de balles vertes
+E = c(0,0,12)  # Événement recherché (r = 8, b = 2, g = 0)
+repl = FALSE
+succes = 0    # Initialisation des variables servant au comptage
+i = 0         #
+repeat{
+  draw = polyUrn(n,r,b,g,repl)    # Exécution d'une expérience
+  i = i + 1
+  if(sum(draw==E)==3){succes=succes+1}    # Est-ce un 'succès'?
+  if (i == ndraw){break}                  # Exercice complété?
+}
+cat("Probabilité = ",succes/ndraw)
+```
+
+    - Solution: Approche classique:  
+
+      $$nS = \binom{42}{12}=\frac{42!}{12!(42-12)!}=$$
+
+```{r}
+nS = choose(42,12)
+cat("nS = ",nS)
+```
+
+      $$nE = \binom{20}{12}=$$
+
+```{r}
+nE = choose(20,12)
+cat("nE = ",nE) 
+
+cat("P(E) = nE/nS =",nE/nS)
+```
+
+### Exercice 11
+
+Utilisez la fonction BlackJack() afin de déterminer les probabilités:
+
+```{r echo=FALSE}
+
+library(dplyr)
+library(tidyr)
+
+BlackJack = function(sampling_number=30){
+  card_suits <- c("Pique", "Coeur", "Carreau", "Trèfle")
+  card_names <- c("As", "Roi", "Reine", "Valet", "10", "9", "8", "7", "6", "5", "4", "3", "2")
+  card_values <- c(1, 10, 10, 10, 10:2)
+  n_suits <- length(card_suits)
+  card_deck <- expand.grid(card_names, card_suits)
+  card_deck <- card_deck %>%
+              unite("Cards", c(1, 2), sep = "_", remove = TRUE) %>%
+              mutate(Values = rep(card_values, n_suits))
+  sample_sums = rep(NA,sampling_number)
+  cards = rep(NA,sampling_number)
+  for(i in 1:sampling_number){
+    cards[i] <- list(sample(card_deck$Cards, size = 3, replace = FALSE))
+    Card_val = card_deck$Values[card_deck$Cards %in% cards[[i]]]
+    sample_sums[i] <- sum(Card_val)+10*(sum(Card_val==1)>0 & sum(Card_val)<=11)
+  }
+  return(sample_sums)
+}
+```
+
+1.  d'obtenir une somme supérieure à 18.
+
+-   Solution:
+
+```{r}
+nrep = 10000
+x = BlackJack(nrep)
+cat("P(x>18) = ",sum(x>18)/nrep)
+```
+
+2.  d'obtenir une somme inférieure à 7.
+
+-   Solution:
+
+```{r}
+nrep = 10000
+x = BlackJack(nrep)
+cat("P(x<7) = ",sum(x<7)/nrep)
+```
+
+3.  une somme comprise entre 10 et 14.
+
+-   Solution:
+
+```{r}
+nrep = 10000
+x = BlackJack(nrep)
+cat("P[(x>10)&(x<14)) = ",sum((x>10)&(x<14))/nrep)
+```

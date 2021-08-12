@@ -1,0 +1,93 @@
+# compact and minimal notation
+## Not run:
+venn.plot <- venn.diagram(
+  list(A = 1:150, B = 121:170),
+  "Venn_2set_simple.tiff"
+);
+venn.plot <- venn.diagram(
+  list(A = 1:150, B = 121:170, C = 101:200),
+  "Venn_3set_simple.tiff"
+);
+## End(Not run)
+# a more elaborate two-set Venn diagram with title and subtitle
+venn.plot <- venn.diagram(
+  x = list(
+    "A" = 1:100,
+    "B" = 96:140
+  ),
+  filename = "Venn_2set_complex.tiff",
+  scaled = TRUE,
+  ext.text = TRUE,
+  ext.line.lwd = 2,
+  ext.dist = -0.15,
+  ext.length = 0.9,
+  ext.pos = -4,
+  inverted = TRUE,
+  cex = 2.5,
+  cat.cex = 2.5,
+  rotation.degree = 45,
+  main = "Complex Venn Diagram",
+  sub = "Featuring: rotation and external lines",
+  main.cex = 2,
+  sub.cex = 1
+);
+## Not run:
+# sample three-set Euler diagram
+venn.plot <- venn.diagram(
+  x = list(
+    "Num A" = paste("Num", 1:100),
+    "Num B" = c(paste("Num", 61:70), paste("Num", 71:100)),
+    "Num C" = c(paste("Num", 41:60), paste("Num", 61:70))),
+  euler.d = TRUE,
+  filename = "Euler_3set_simple.tiff",
+  cat.pos = c(-20, 0, 20),
+  cat.dist = c(0.05, 0.05, 0.02),
+  cex = 2.5,
+  cat.cex = 2.5,
+  reverse = TRUE
+);
+# sample three-set Euler diagram
+venn.plot <- venn.diagram(
+  x = list(
+    A = c(1:10),
+    B = c(11:90),
+    C = c(81:90)
+  ),
+  euler.d = TRUE,
+  filename = "Euler_3set_scaled.tiff",
+  cex = 2.5,
+  cat.cex = 2.5,
+  cat.pos = 0
+);
+## End(Not run)
+# sample four-set Venn Diagram
+A <- sample(1:1000, 400, replace = FALSE);
+B <- sample(1:1000, 600, replace = FALSE);
+C <- sample(1:1000, 350, replace = FALSE);
+D <- sample(1:1000, 550, replace = FALSE);
+E <- sample(1:1000, 375, replace = FALSE);
+venn.plot <- venn.diagram(
+  x = list(
+    A = A,
+    D = D,
+    B = B,
+    C = C
+  ),
+  filename = "Venn_4set_pretty.tiff",
+  col = "transparent",
+  fill = c("cornflowerblue", "green", "yellow", "darkorchid1"),
+  alpha = 0.50,
+  label.col = c("orange", "white", "darkorchid4", "white",
+                "white", "white", "white", "white", "darkblue", "white",
+                "white", "white", "white", "darkgreen", "white"),
+  cex = 1.5,
+  fontfamily = "serif",
+  fontface = "bold",
+  cat.col = c("darkblue", "darkgreen", "orange", "darkorchid4"),
+  cat.cex = 1.5,
+  cat.pos = 0,
+  cat.dist = 0.07,
+  cat.fontfamily = "serif",
+  rotation.degree = 270,
+  margin = 0.2
+);

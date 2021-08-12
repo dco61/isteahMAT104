@@ -1,0 +1,35 @@
+library(VennDiagram)
+grid.newpage();
+# A more complicated diagram
+venn.plot <- draw.triple.venn(
+  area1 = 100,
+  area2 = 120,
+  area3 = 60,
+  n12 = 60,
+  n23 = 20,
+  n13 = 30,
+  n123 = 20,
+  category = c("Physique", "Chimie", "Stats"),
+  fill = c("lightblue", "lightcoral", "lightgreen"),
+  lwd = rep(2,3),
+  col = rep("black",3),
+  cex = 2,
+  cat.cex = 2,
+  cat.dist = rep(0.08,3),
+  cat.pos = c(-25,25,0),
+  cat.col = c("blue", "red", "darkgreen")
+);
+#grid.draw(venn.plot);
+
+Pour fin d'exemple, considérons une urne contenant 6 balles rouges, 8 balles vertes, 4 balles bleues, et 5 balles oranges. Quelle serait la probabilité, en tirant **n =5** balles de cette urne, d'obtenir 2 balles rouges, une balle verte, aucune balle bleue, et deux balles oranges?
+polyUrn4 <- function(n=20, R=6, V=8, B=4, O=5, repl=FALSE){
+  # n: size of draws
+  # R: Nombre de balles rouges
+  # V: Nombre de balles vertes
+  # B: Nombre de balles bleues
+  # O: Nombre de balles oranges
+  urn = c(rep("Rouge", R), rep("Vert", V), rep("Bleu", B), rep("Orange",O))
+  draw = sample(urn, size=n, replace=repl)
+  x = c(sum(draw=="Rouge"), sum(draw == "Vert"), sum(draw == "Bleu"), sum(draw == "Orange"))
+  return(x)
+}
