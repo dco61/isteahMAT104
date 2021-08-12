@@ -30,3 +30,6 @@ ub: upper bound of the area
 acolor: color of the area
 ...: additional arguments to be passed to lines function
 }
+\examples{
+normal_area(mean=100, sd=15, lb=80, ub=125, acolor="red")
+}

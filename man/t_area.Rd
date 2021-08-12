@@ -21,3 +21,6 @@ t_area(df = 25, lb, ub, acolor = "lightgray", ...)
 Adapted from: https://r-coder.com/normal-distribution-r
 Function t_area(): draw a Student distribution with shaded area
 }
+\examples{
+t_area(df=25, lb=0, ub=1.25, acolor="red")
+}

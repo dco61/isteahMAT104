@@ -27,3 +27,6 @@ ub: upper bound of the area
 acolor: color of the area
 ...: additional arguments to be passed to the lines function
 }
+\examples{
+exp_area(rate = 0.3, lb=2, ub=5, acolor="red")
+}

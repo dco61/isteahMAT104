@@ -7,7 +7,7 @@
 #'@param acolor color of the area
 #' ...: additional arguments to be passed to lines function
 #'
-#'@example
+#'@examples
 #'t_area(df=25, lb=0, ub=1.25, acolor="red")
 #'@export
 #'
@@ -34,13 +34,10 @@ t_area <- function(df=25, lb, ub, acolor = "lightgray", ...) {
   lines(x,rep(0,length(x)))
   if(!ubf){
     pr <- pt(lb, df, lower.tail=FALSE)
-    cat("pr1=",pr)
   }else
   if(!lbf){
     pr <- pt(ub, df, lower.tail=TRUE)
-    cat("pr2=",pr)
   }else
     pr <- pt(ub, df) - pt(lb, df)
-    cat("pr3=",pr)
   text(-3, 0.35, paste("p = ", round(pr, 4)), cex=1.2)
 }
