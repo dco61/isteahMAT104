@@ -16,6 +16,7 @@ RandUnif <- function(n = 50, a = c(10, 20), b = c(25, 50)) {
     }
     liminf <- runif(1, a[1], a[2])  # limite inférieure (Pop)
     limsup <- runif(1, b[1], b[2])  # limite supérieure (Pop)
-    x <- runif(n, liminf, limsup)
-    return(x)
+    x = runif(n,liminf,limsup)
+    out = list(x,liminf,limsup)
+return(out)
 }
