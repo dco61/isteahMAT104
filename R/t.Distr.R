@@ -1,8 +1,15 @@
-t.Distr <- function(t, df, alpha, h1){
-t=3.1
-df=25
-alpha=0.05
-h1=-1
+#' Distribution de Student: Représentation graphique des résultats
+#' d'un test d'hypothèse
+#' @param t valeur du t observé
+#' @param df  Nombre de degrés de liberté
+#' @param alpha Niveau de signification
+#' @param h1 Directionalité du test:
+#'                -1 = p < 0: unilatéral gauche
+#'                +1 = p > 0: unilatéral droite
+#'                 0 = p != 0: bilatéral
+#' @export
+#'
+t.Distr <- function(t, df, alpha=0.05, h1=1){
   x <- seq(-4,4,by=0.01)
   y <- dt(x, df)
   if(h1!=0){
@@ -31,14 +38,14 @@ h1=-1
         if(h1==0){yReject[xReject > left & xReject < right] <- 0}
       }
     }
-polygon(c(xReject,xReject[length(xReject)],xReject[1]),
-      c(0, yReject , 0), col='lightblue')
-if(h1!=0){
-  p <- pt(abs(t), df, lower.tail=FALSE)
-}else{
-  p <- 2 * pt(abs(t), df, lower.tail=FALSE)
-}
-legend("topleft", paste("p = ", round(p, 4)))
-arrows(t, .15, t, 0, length=0.1, col="red", lwd=2)
-text(t, 0.17, "t calculé", cex=1.2)
+  polygon(c(xReject,xReject[length(xReject)],xReject[1]),
+          c(0, yReject , 0), col='lightblue')
+  if(h1!=0){
+    p <- pt(abs(t), df, lower.tail=FALSE)
+  }else{
+    p <- 2 * pt(abs(t), df, lower.tail=FALSE)
+  }
+  legend("topleft", paste("p = ", round(p, 4)))
+  arrows(t, .15, t, 0, length=0.1, col="red", lwd=2)
+  text(t, 0.17, "t calculé", cex=1.2)
 }

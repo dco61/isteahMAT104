@@ -75,7 +75,7 @@ HaitiPopGen <- function(){
   EDUC=rep("NA",PopTotale)
   NivScol <- c("Aucun","Fond.1","Fond.2","Fond.3","PréScol","Second",
               "Univ.1","Univ.2","Univ.3")
-  PropNivScol <- c(0.2, 0.07, 0.2, 0.18, 0.12, 0.09, 0.06, 0.05, 0.03)
+  PropNivScol <- c(0.2, 0.2, 0.18, 0.12, 0.09, 0.07, 0.06, 0.05, 0.03)
   EDUC[Tdt$AGE>25] <- sample(NivScol, sum(Tdt$AGE>25), prob=PropNivScol, replace=TRUE)
 
   # Génération de l'indice de criminalité

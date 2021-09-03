@@ -4,7 +4,7 @@
 #'@param n scalar value: number of trials (default = 10)
 #'@param p scalar value: approximate probability of success (default = 0.5)
 #'@return vector of observations, integer values
-#'@example
+#'@examples
 #'  x1 <- RandBin() # use defaults
 #'  x2 <- RandBin(25,5,0.7) # draw 25 observations of results of 5 trials, with p=0.7
 #'@export
