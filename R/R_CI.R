@@ -2,7 +2,7 @@
 #' Échantillons tirés d'une distribution normale
 #' @param r = Corrélation au niveau de la population
 #' @param n = Taille de l'échantillon
-#' @param nrep = Number of resamplings
+#' @param nrep = Nombre de ré-échantillonnages
 #' @param nconf = Niveau de confiance
 #' @export
 
@@ -31,13 +31,13 @@ plot(gr1,
      main = "Distribution Empirique de Rxy",
      col = c("red", "lightblue", "red")[cuts],
      freq=FALSE,
-     xlab=paste(conf,'% IC (Empirique) ','LL',LL4,'  UL',UL4,'\n',conf,'% IC (Théorique) ','LL',LE4,'  UL',UE4))
+     xlab=paste("C[", LL4,"\u2264 \u03C1 \u2264 ",UL4,"] = ",conf, "% (Empir) \n C[",LE4,"\u2264 \u03C1 \u2264 ",UE4, "] = ",conf, "% (Théor)"), cex=0.8)
 abline(v=mean(ivec), lty=2, lwd=2, col="#CC0000")
 txt1 <- paste("Moyenne = ", round(mean(ivec), 3))
 txt2 <- paste("Err.Std = ", round(sd(ivec), 3))
 legend("topleft",
        legend = c(txt1, txt2),
        lty = 0:0,
-       cex = 0.8,
+       cex = 0.6,
        bg = "lightyellow")
 }

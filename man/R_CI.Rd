@@ -12,7 +12,7 @@ R_CI(r = 0.36, n = 50, nrep = 1e+05, conf = 95)
 
 \item{n}{= Taille de l'échantillon}
 
-\item{nrep}{= Number of resamplings}
+\item{nrep}{= Nombre de ré-échantillonnages}
 
 \item{nconf}{= Niveau de confiance}
 }
