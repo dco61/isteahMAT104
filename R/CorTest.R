@@ -11,7 +11,7 @@ CorTest <- function(r, n){
   z <- r2z(r)
   if(length(r)==2){
       Z <- (z[1]-z[2]) / sqrt(sum(1/(n-3)))
-      p <- 2* (1 - pnorm(Z)) # Test bilatéral
+      p <- 2* (1 - pnorm(abs(Z))) # Test bilatéral
   }else{
       chi2 <- sum((n-3) * z^2) - (sum((n-3) * z)^2 / sum(n-3))
       dl <- length(r) - 1      
